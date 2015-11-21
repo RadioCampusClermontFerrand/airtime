@@ -11,7 +11,6 @@ class ApiController extends Zend_Controller_Action
 
     public function init()
     {
-
         //Ignore API key and session authentication for these APIs:
         $ignoreAuth = array("live-info", 
             "live-info-v2", 
@@ -559,6 +558,9 @@ class ApiController extends Zend_Controller_Action
 
     public function notifyMediaItemStartPlayAction()
     {
+        $this->view->layout()->disableLayout();
+        $this->_helper->viewRenderer->setNoRender(true);
+
         $media_id = $this->_getParam("media_id");
         
         // We send a fake media id when playing on-demand ads;

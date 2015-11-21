@@ -272,7 +272,7 @@ class Zend_Controller_Plugin_Acl extends Zend_Controller_Plugin_Abstract
         $authHeader = $this->getRequest()->getHeader("Authorization");
         $encodedRequestApiKey = substr($authHeader, strlen("Basic "));
         $encodedStoredApiKey = base64_encode($CC_CONFIG["apiKey"][0] . ":");
-    
+
         return ($encodedRequestApiKey === $encodedStoredApiKey);
     }
 

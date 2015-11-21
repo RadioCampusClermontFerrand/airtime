@@ -485,7 +485,6 @@ class Application_Model_Scheduler
         $itemStartDT = $instance->getDbStarts(null);
         foreach ($schedule as $item) {
             $itemEndDT = $this->findEndTime($itemStartDT, $item->getDbClipLength());
-            Logging::info($itemEndDT);
             $item->setDbStarts($itemStartDT)
                 ->setDbEnds($itemEndDT)
                 ->save($this->con);

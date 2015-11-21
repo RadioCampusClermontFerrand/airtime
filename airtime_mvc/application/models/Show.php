@@ -1195,8 +1195,8 @@ SQL;
      * Gets the current show, previous and next with an n-day window from
      * the given timeNow, so timeNow-2days and timeNow+$daysToRetrieve days.
      * 
-     * @param $utcNow A DateTime object containing the current time in UTC.
-     * @return An array containing the previous show, 
+     * @param DateTime $utcNow A DateTime object containing the current time in UTC.
+     * @return array Array containing the previous show,
      *         current show, and next show.
      */
     public static function getPrevCurrentNext($utcNow, $utcEndStr, $showsToRetrieve)
