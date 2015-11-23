@@ -29,9 +29,11 @@ class Rotation {
     }
 
     /**
-     * Get an array of CcFiles objects to fill
+     * Create an array of CcFiles objects based on added criteria to fill up to an hour of unscheduled time.
      *
-     * @param string $startTime string representation of the start time of the next scheduled track
+     * @param string $startTime string representation of the start time of the next scheduled track.
+     *                          If set, only add as many tracks as will fit in the time between now and
+     *                          $startTime to the internal tracks array
      * @return $this self, for chaining
      */
     public function build($startTime = null) {
@@ -43,13 +45,19 @@ class Rotation {
             if (!$track) break;
             $timeToFill -= Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
             $this->_tracks[] = $track;
+            // TODO: pop tracks off the history to keep it as close to HISTORY_LOOKUP_SECONDS as possible?
+            $this->_history->prepend($track);  // Add each track to history so our heuristics use it for future tracks
         }
 
         return $this;
     }
 
     /**
-     * @throws Exception
+     * Schedule the internal tracks array.
+     *
+     * TODO: should this function call build() if _tracks is empty?
+     *
+     * @see Rotation::build()
      */
     public function schedule() {
         $future = $now = new DateTime(null, new DateTimeZone("UTC"));
@@ -59,7 +67,7 @@ class Rotation {
         $currentShowInstance = count($shows['currentShow']) > 0 ? $shows['currentShow']['instance_id'] : null;
 
         if ($currentShowInstance) {
-            $this->_buildFallbackRotation($currentShowInstance, $this->_tracks);
+            $this->_scheduleFallbackRotation($currentShowInstance, $this->_tracks);
         }
         // TODO: if there isn't a current show instance, make one...??
     }
@@ -83,9 +91,9 @@ class Rotation {
      * @return PropelObjectCollection
      */
     private function _getHistory() {
-        $oneHourAgo = gmdate(DEFAULT_TIMESTAMP_FORMAT, (microtime(true) - self::HISTORY_LOOKUP_SECONDS));
+        $pastTimestamp = gmdate(DEFAULT_TIMESTAMP_FORMAT, (microtime(true) - self::HISTORY_LOOKUP_SECONDS));
         $history = CcPlayoutHistoryQuery::create()
-            ->filterByDbEnds($oneHourAgo, Criteria::GREATER_EQUAL)
+            ->filterByDbEnds($pastTimestamp, Criteria::GREATER_EQUAL)
             ->find();
         $files = array();
         foreach ($history as $item) {
@@ -99,7 +107,7 @@ class Rotation {
      * @param int $showInstance
      * @param CcFiles[] $tracks
      */
-    private function _buildFallbackRotation($showInstance, $tracks) {
+    private function _scheduleFallbackRotation($showInstance, $tracks) {
         if (!Zend_Session::isStarted()) Zend_Session::start();
         $scheduler = new Application_Model_Scheduler();
         // Ignore user permissions so the fallbacks can be set on non-user (pypo) requests
