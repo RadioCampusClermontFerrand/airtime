@@ -1128,48 +1128,50 @@ SQL;
         $fallbackLimit = $now->format('Y-m-d-H-i-s');
         if (empty($data['media']) || array_keys($data['media'])[0] > $fallbackLimit) {
             $nextTrackStartTime = empty($data['media']) ? null : array_keys($data['media'])[0];
-            Application_Model_Schedule::createFallbackSchedule($data['media'], $nextTrackStartTime);
+            Application_Model_Schedule::createFallbackSchedule($nextTrackStartTime);
         }
 
         //self::foldData($data["media"]);
         return $data;
     }
 
-    public static function createFallbackSchedule(&$schedule, $nextTrackStartTime) {
-        $rotation = Rotation::getInstance();
-        $fallback = $rotation->getTracks($nextTrackStartTime);
-        $now = new DateTime(null, new DateTimeZone("UTC"));
-        $rollingStartTime = $now->format('Y-m-d-H-i-s');
-        $i = 0;
-        foreach ($fallback as $file) {
-            /** @var $file CcFiles */
-            $cueout = Application_Common_DateHelper::CalculateLengthInSeconds($file->getDbCueout());
-            $cuein = Application_Common_DateHelper::CalculateLengthInSeconds($file->getDbCuein());
-            $length = floor($cueout - $cuein);
-            $now->add(new DateInterval("PT{$length}S"));
-            $rollingEndTime = $now->format('Y-m-d-H-i-s');
-            $filepath = $file->getAbsoluteFilePath();
-            $scheduleItem = array(
-                'id'                => $file->getDbId(),
-                'type'              => 'file',
-                'metadata'          => CcFiles::sanitizeResponse($file),
-                'row_id'            => $i,
-                'uri'               => $filepath,
-                'fade_in'           => Application_Model_Preference::GetDefaultFadeIn() * 1000,
-                'fade_out'          => Application_Model_Preference::GetDefaultFadeOut() * 1000,
-                'cue_in'            => $cuein,
-                'cue_out'           => $cueout,
-                'start'             => $rollingStartTime,
-                'end'               => $rollingEndTime,
-                'show_name'         => "Fallback Playlist",
-                'replay_gain'       => $file->getDbReplayGain(),
-                'independent_event' => true,
-                'filesize'          => $file->getFileSize(),
-            );
-            $schedule[$rollingStartTime] = $scheduleItem;
-            $rollingStartTime = $rollingEndTime;
-            $i++;
-        }
+    public static function createFallbackSchedule($nextTrackStartTime) {
+        $rotation = new Rotation();
+        $rotation->build($nextTrackStartTime)->schedule();
+
+        Application_Model_RabbitMq::PushSchedule();
+//        $now = new DateTime(null, new DateTimeZone("UTC"));
+//        $rollingStartTime = $now->format('Y-m-d-H-i-s');
+//        $i = 0;
+//        foreach ($fallback as $file) {
+//            /** @var $file CcFiles */
+//            $cueout = Application_Common_DateHelper::CalculateLengthInSeconds($file->getDbCueout());
+//            $cuein = Application_Common_DateHelper::CalculateLengthInSeconds($file->getDbCuein());
+//            $length = floor($cueout - $cuein);
+//            $now->add(new DateInterval("PT{$length}S"));
+//            $rollingEndTime = $now->format('Y-m-d-H-i-s');
+//            $filepath = $file->getAbsoluteFilePath();
+//            $scheduleItem = array(
+//                'id'                => $file->getDbId(),
+//                'type'              => 'file',
+//                'metadata'          => CcFiles::sanitizeResponse($file),
+//                'row_id'            => $i,
+//                'uri'               => $filepath,
+//                'fade_in'           => Application_Model_Preference::GetDefaultFadeIn() * 1000,
+//                'fade_out'          => Application_Model_Preference::GetDefaultFadeOut() * 1000,
+//                'cue_in'            => $cuein,
+//                'cue_out'           => $cueout,
+//                'start'             => $rollingStartTime,
+//                'end'               => $rollingEndTime,
+//                'show_name'         => "Fallback Playlist",
+//                'replay_gain'       => $file->getDbReplayGain(),
+//                'independent_event' => true,
+//                'filesize'          => $file->getFileSize(),
+//            );
+//            $schedule[$rollingStartTime] = $scheduleItem;
+//            $rollingStartTime = $rollingEndTime;
+//            $i++;
+//        }
     }
 
     public static function deleteAll()

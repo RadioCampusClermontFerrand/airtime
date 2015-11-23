@@ -1186,11 +1186,12 @@ class Application_Model_Scheduler
             // This array is used to keep track of every show instance that was
             // effected by the track deletion. It will be used later on to
             // remove gaps in the schedule and adjust crossfade times.
-            $effectedInstanceIds = array();
+            $affectedInstanceIds = array();
 
             foreach ($removedItems as $removedItem) {
                 $instance = $removedItem->getCcShowInstances($this->con);
-                $effectedInstanceIds[] = $instance->getDbId();
+                // Use the instance IDs as array keys to mimic a set (so we don't add the same instance n times!)
+                $affectedInstanceIds[$instance->getDbId()] = $instance->getDbId();
 
                 //check if instance is linked and if so get the schedule items
                 //for all linked instances so we can delete them too
@@ -1202,7 +1203,7 @@ class Application_Model_Scheduler
                     foreach ($ccShowInstances as $ccShowInstance) {
                         $instanceIds[] = $ccShowInstance->getDbId();
                     }
-                    $effectedInstanceIds = array_merge($effectedInstanceIds, $instanceIds);
+                    $affectedInstanceIds = array_merge($affectedInstanceIds, $instanceIds);
                     
                     // Delete the same track, represented by $removedItem, in
                     // each linked show instance.
@@ -1241,7 +1242,7 @@ class Application_Model_Scheduler
             Application_Model_StoredFile::updatePastFilesIsScheduled();
 
             if ($adjustSched === true) {
-                foreach ($effectedInstanceIds as $instance) {
+                foreach ($affectedInstanceIds as $instance) {
                     $this->removeGaps($instance);
                     $this->calculateCrossfades($instance);
                 }
@@ -1249,7 +1250,7 @@ class Application_Model_Scheduler
 
             //update the status flag in cc_schedule.
             $instances = CcShowInstancesQuery::create()
-                ->filterByPrimaryKeys($effectedInstanceIds)
+                ->filterByPrimaryKeys($affectedInstanceIds)
                 ->find($this->con);
 
             foreach ($instances as $instance) {
