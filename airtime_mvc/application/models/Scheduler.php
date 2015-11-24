@@ -482,9 +482,15 @@ class Application_Model_Scheduler
             ->orderByDbStarts()
             ->find($this->con);
 
+        $now = new DateTime("now", new DateTimeZone("UTC"));
         $itemStartDT = $instance->getDbStarts(null);
         foreach ($schedule as $item) {
             $itemEndDT = $this->findEndTime($itemStartDT, $item->getDbClipLength());
+            // If the track has already ended, don't change it.
+            if ($itemEndDT < $now) {
+                $itemStartDT = $itemEndDT;
+                continue;
+            }
             $item->setDbStarts($itemStartDT)
                 ->setDbEnds($itemEndDT)
                 ->save($this->con);
@@ -514,10 +520,15 @@ class Application_Model_Scheduler
             ->orderByDbStarts()
             ->find($this->con);
 
+        $now = new DateTime("now", new DateTimeZone("UTC"));
         $itemStartDT = $instance->getDbStarts(null);
         foreach ($schedule as $item) {
-
             $itemEndDT = $this->findEndTime($itemStartDT, $item->getDbClipLength());
+            // If the track has already ended, don't change it.
+            if ($itemEndDT < $now) {
+                $itemStartDT = $itemEndDT;
+                continue;
+            }
 
             $item->setDbStarts($itemStartDT)
                 ->setDbEnds($itemEndDT);
