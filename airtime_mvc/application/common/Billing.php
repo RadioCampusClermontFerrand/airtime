@@ -5,6 +5,58 @@ define("WHMCS_AIRTIME_GROUP_ID", 15);
 
 class Billing
 {
+    // TODO: remove this once all existing customers have bandwidth limits set
+    public static $PLAN_TYPE_DEFAULTS = array(
+        "trial" => array(
+            "bandwidth_limit" => 3298534883328
+        ),
+        "hobbyist" => array(
+            "bandwidth_limit" => 1099511627776
+        ),
+        "starter" => array(
+            "bandwidth_limit" => 3298534883328
+        ),
+        "starter2" => array(
+            "bandwidth_limit" => 3298534883328
+        ),
+        "plus" => array(
+            "bandwidth_limit" => 10995116277760
+        ),
+        "plus2" => array(
+            "bandwidth_limit" => 10995116277760
+        ),
+        "premium" => array(
+            "bandwidth_limit" => 43980465111040
+        ),
+        "premium2" => array(
+            "bandwidth_limit" => 43980465111040
+        ),
+        "enterprise" => array(
+            "bandwidth_limit" => 164926744166400
+        ),
+        "complimentary" => array(
+            "bandwidth_limit" => 32985348833280
+        ),
+        "sida" => array(
+            "bandwidth_limit" => 32985348833280
+        ),
+        "custom" => array(
+            "bandwidth_limit" => 10995116277760
+        ),
+        "awesome-hobbyist-2015" => array(
+            "bandwidth_limit" => 1099511627776
+        ),
+        "awesome-starter-2015" => array(
+            "bandwidth_limit" => 3298534883328
+        ),
+        "awesome-plus-2015" => array(
+            "bandwidth_limit" => 10995116277760
+        ),
+        "awesome-premium-2015" => array(
+            "bandwidth_limit" => 43980465111040
+        ),
+    );
+
     public static function getAPICredentials()
     {
         return array(
