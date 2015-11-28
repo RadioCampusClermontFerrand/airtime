@@ -748,8 +748,22 @@ class Application_Model_Scheduler
                     }
                     //selected empty row to add after
                     else {
-                        $showStartDT = new DateTime($instance->getDbStarts(), new DateTimeZone("UTC"));
-                        $nextStartDT = $this->findNextStartTime($showStartDT, $instanceId);
+                        $now = new DateTime(null, new DateTimeZone("UTC"));
+                        $now = $now->format(DEFAULT_TIMESTAMP_FORMAT);
+                        $lastPlayedOutTrack = CcScheduleQuery::create()
+                            ->filterByDbInstanceId($instance->getDbId())
+                            ->filterByDbEnds($now, Criteria::LESS_THAN)
+                            ->filterByDbPlayoutStatus(-1, Criteria::NOT_EQUAL)  // Ignore filler placeholders
+                            ->orderByDbStarts(Criteria::DESC)
+                            ->findOne();
+
+                        // findNextStartTime, as a side-effect, creates a placeholder row (if this is the currently
+                        // playing show) using the startTime parameter as the start time of the placeholder. We can
+                        // end up here if the show is currently playing but has tracks that have already played out,
+                        // so we need to make sure the start time takes that into account. -- Duncan
+                        $startTime = empty($lastPlayedOutTrack) ? new DateTime($instance->getDbStarts(), new DateTimeZone("UTC"))
+                                                                : new DateTime($lastPlayedOutTrack->getDbStarts(), new DateTimeZone("UTC"));
+                        $nextStartDT = $this->findNextStartTime($startTime, $instanceId);
 
                         //first item in show so start position counter at 0
                         $pos = 0;
@@ -1228,24 +1242,28 @@ class Application_Model_Scheduler
 
                 //check to truncate the currently playing item instead of deleting it.
                 if ($removedItem->isCurrentItem($this->epochNow)) {
+                    try {
+                        $nEpoch = $this->epochNow;
+                        $sEpoch = $removedItem->getDbStarts('U.u');
 
-                    $nEpoch = $this->epochNow;
-                    $sEpoch = $removedItem->getDbStarts('U.u');
+                        $length = bcsub($nEpoch, $sEpoch, 6);
+                        $cliplength = Application_Common_DateHelper::secondsToPlaylistTime($length);
 
-                    $length = bcsub($nEpoch , $sEpoch , 6);
-                    $cliplength = Application_Common_DateHelper::secondsToPlaylistTime($length);
+                        $cueinSec = Application_Common_DateHelper::playlistTimeToSeconds($removedItem->getDbCueIn());
+                        $cueOutSec = bcadd($cueinSec, $length, 6);
+                        $cueout = Application_Common_DateHelper::secondsToPlaylistTime($cueOutSec);
 
-                    $cueinSec = Application_Common_DateHelper::playlistTimeToSeconds($removedItem->getDbCueIn());
-                    $cueOutSec = bcadd($cueinSec , $length, 6);
-                    $cueout = Application_Common_DateHelper::secondsToPlaylistTime($cueOutSec);
-
-                    //Set DbEnds - 1 second because otherwise there can be a timing issue
-                    //when sending the new schedule to Pypo where Pypo thinks the track is still
-                    //playing.
-                    $removedItem->setDbCueOut($cueout)
-                        ->setDbClipLength($cliplength)
-                        ->setDbEnds($this->nowDT)
-                        ->save($this->con);
+                        //Set DbEnds - 1 second because otherwise there can be a timing issue
+                        //when sending the new schedule to Pypo where Pypo thinks the track is still
+                        //playing.
+                        Logging::info($this->nowDT);
+                        $removedItem->setDbCueOut($cueout)
+                            ->setDbClipLength($cliplength)
+                            ->setDbEnds($this->nowDT)
+                            ->save($this->con);
+                    } catch (Exception $e) {
+                        Logging::error($e->getMessage());
+                    }
                 } else {
                     $removedItem->delete($this->con);
                 }
