@@ -1127,7 +1127,7 @@ SQL;
         $now->add(new DateInterval("PT60S"));
         $fallbackLimit = $now->format('Y-m-d-H-i-s');
         if (empty($data['media']) || array_keys($data['media'])[0] > $fallbackLimit) {
-            Application_Model_Schedule::createFallbackSchedule();
+            // Application_Model_Schedule::createFallbackSchedule();
         }
 
         //self::foldData($data["media"]);
