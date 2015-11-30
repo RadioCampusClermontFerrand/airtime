@@ -134,19 +134,20 @@ class Rotation {
         $instances = $this->_showInstances;
         if (empty($instances)) {
             $currentInstance = $this->_getCurrentShowInstance();
+            Logging::info($currentInstance);
             if ($currentInstance > 0) $instances[] = $currentInstance;
         }
 
+        $this->_build();
+
         foreach ($instances as $ts => $instance) {
-            $now = DateTime::createFromFormat(DEFAULT_TIMESTAMP_FORMAT, time(), new DateTimeZone("UTC"));
+            $now = DateTime::createFromFormat(DEFAULT_TIMESTAMP_FORMAT, "now", new DateTimeZone("UTC"));
             // Don't schedule deferred instances until we're at or past their deferral time
             if (is_int($ts) || $now >= $ts) {
                 $this->_scheduleFallbackRotation($instance);
             }
             // TODO: add instances to blacklist so we don't schedule the same Rotation multiple times?
         }
-
-        $this->_build();
 
         return $this;
     }
