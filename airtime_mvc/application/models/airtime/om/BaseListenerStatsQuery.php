@@ -13,7 +13,7 @@
  * @method ListenerStatsQuery orderByDbMount($order = Criteria::ASC) Order by the mount column
  * @method ListenerStatsQuery orderByDbBytes($order = Criteria::ASC) Order by the bytes column
  * @method ListenerStatsQuery orderByDbReferrer($order = Criteria::ASC) Order by the referrer column
- * @method ListenerStatsQuery orderByDbDevice($order = Criteria::ASC) Order by the device column
+ * @method ListenerStatsQuery orderByDbUserAgent($order = Criteria::ASC) Order by the user_agent column
  *
  * @method ListenerStatsQuery groupByDbId() Group by the id column
  * @method ListenerStatsQuery groupByDbDisconnectTimestamp() Group by the disconnect_timestamp column
@@ -22,7 +22,7 @@
  * @method ListenerStatsQuery groupByDbMount() Group by the mount column
  * @method ListenerStatsQuery groupByDbBytes() Group by the bytes column
  * @method ListenerStatsQuery groupByDbReferrer() Group by the referrer column
- * @method ListenerStatsQuery groupByDbDevice() Group by the device column
+ * @method ListenerStatsQuery groupByDbUserAgent() Group by the user_agent column
  *
  * @method ListenerStatsQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
  * @method ListenerStatsQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
@@ -37,7 +37,7 @@
  * @method ListenerStats findOneByDbMount(string $mount) Return the first ListenerStats filtered by the mount column
  * @method ListenerStats findOneByDbBytes(int $bytes) Return the first ListenerStats filtered by the bytes column
  * @method ListenerStats findOneByDbReferrer(string $referrer) Return the first ListenerStats filtered by the referrer column
- * @method ListenerStats findOneByDbDevice(string $device) Return the first ListenerStats filtered by the device column
+ * @method ListenerStats findOneByDbUserAgent(string $user_agent) Return the first ListenerStats filtered by the user_agent column
  *
  * @method array findByDbId(int $id) Return ListenerStats objects filtered by the id column
  * @method array findByDbDisconnectTimestamp(string $disconnect_timestamp) Return ListenerStats objects filtered by the disconnect_timestamp column
@@ -46,7 +46,7 @@
  * @method array findByDbMount(string $mount) Return ListenerStats objects filtered by the mount column
  * @method array findByDbBytes(int $bytes) Return ListenerStats objects filtered by the bytes column
  * @method array findByDbReferrer(string $referrer) Return ListenerStats objects filtered by the referrer column
- * @method array findByDbDevice(string $device) Return ListenerStats objects filtered by the device column
+ * @method array findByDbUserAgent(string $user_agent) Return ListenerStats objects filtered by the user_agent column
  *
  * @package    propel.generator.airtime.om
  */
@@ -154,7 +154,7 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT "id", "disconnect_timestamp", "geo_ip", "session_duration", "mount", "bytes", "referrer", "device" FROM "listener_stats" WHERE "id" = :p0';
+        $sql = 'SELECT "id", "disconnect_timestamp", "geo_ip", "session_duration", "mount", "bytes", "referrer", "user_agent" FROM "listener_stats" WHERE "id" = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -500,32 +500,32 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query on the device column
+     * Filter the query on the user_agent column
      *
      * Example usage:
      * <code>
-     * $query->filterByDbDevice('fooValue');   // WHERE device = 'fooValue'
-     * $query->filterByDbDevice('%fooValue%'); // WHERE device LIKE '%fooValue%'
+     * $query->filterByDbUserAgent('fooValue');   // WHERE user_agent = 'fooValue'
+     * $query->filterByDbUserAgent('%fooValue%'); // WHERE user_agent LIKE '%fooValue%'
      * </code>
      *
-     * @param     string $dbDevice The value to use as filter.
+     * @param     string $dbUserAgent The value to use as filter.
      *              Accepts wildcards (* and % trigger a LIKE)
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return ListenerStatsQuery The current query, for fluid interface
      */
-    public function filterByDbDevice($dbDevice = null, $comparison = null)
+    public function filterByDbUserAgent($dbUserAgent = null, $comparison = null)
     {
         if (null === $comparison) {
-            if (is_array($dbDevice)) {
+            if (is_array($dbUserAgent)) {
                 $comparison = Criteria::IN;
-            } elseif (preg_match('/[\%\*]/', $dbDevice)) {
-                $dbDevice = str_replace('*', '%', $dbDevice);
+            } elseif (preg_match('/[\%\*]/', $dbUserAgent)) {
+                $dbUserAgent = str_replace('*', '%', $dbUserAgent);
                 $comparison = Criteria::LIKE;
             }
         }
 
-        return $this->addUsingAlias(ListenerStatsPeer::DEVICE, $dbDevice, $comparison);
+        return $this->addUsingAlias(ListenerStatsPeer::USER_AGENT, $dbUserAgent, $comparison);
     }
 
     /**

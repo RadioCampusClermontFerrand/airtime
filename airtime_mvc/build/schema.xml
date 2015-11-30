@@ -631,6 +631,6 @@
     <column name="mount" phpName="DbMount" type="VARCHAR" size="256" required="true" />
     <column name="bytes" phpName="DbBytes" type="INTEGER" required="true" />
     <column name="referrer" phpName="DbReferrer" type="VARCHAR" size="4096" required="true" />
-    <column name="device" phpName="DbDevice" type="VARCHAR" size="4096" required="true" />
+    <column name="user_agent" phpName="DbUserAgent" type="VARCHAR" size="4096" required="true" />
   </table>
 </database>

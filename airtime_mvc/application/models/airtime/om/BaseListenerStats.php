@@ -72,10 +72,10 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     protected $referrer;
 
     /**
-     * The value for the device field.
+     * The value for the user_agent field.
      * @var        string
      */
-    protected $device;
+    protected $user_agent;
 
     /**
      * Flag to prevent endless save loop, if this object is referenced
@@ -199,14 +199,14 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     }
 
     /**
-     * Get the [device] column value.
+     * Get the [user_agent] column value.
      *
      * @return string
      */
-    public function getDbDevice()
+    public function getDbUserAgent()
     {
 
-        return $this->device;
+        return $this->user_agent;
     }
 
     /**
@@ -359,25 +359,25 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     } // setDbReferrer()
 
     /**
-     * Set the value of [device] column.
+     * Set the value of [user_agent] column.
      *
      * @param  string $v new value
      * @return ListenerStats The current object (for fluent API support)
      */
-    public function setDbDevice($v)
+    public function setDbUserAgent($v)
     {
         if ($v !== null && is_numeric($v)) {
             $v = (string) $v;
         }
 
-        if ($this->device !== $v) {
-            $this->device = $v;
-            $this->modifiedColumns[] = ListenerStatsPeer::DEVICE;
+        if ($this->user_agent !== $v) {
+            $this->user_agent = $v;
+            $this->modifiedColumns[] = ListenerStatsPeer::USER_AGENT;
         }
 
 
         return $this;
-    } // setDbDevice()
+    } // setDbUserAgent()
 
     /**
      * Indicates whether the columns in this object are only set to default values.
@@ -418,7 +418,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
             $this->mount = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
             $this->bytes = ($row[$startcol + 5] !== null) ? (int) $row[$startcol + 5] : null;
             $this->referrer = ($row[$startcol + 6] !== null) ? (string) $row[$startcol + 6] : null;
-            $this->device = ($row[$startcol + 7] !== null) ? (string) $row[$startcol + 7] : null;
+            $this->user_agent = ($row[$startcol + 7] !== null) ? (string) $row[$startcol + 7] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -671,8 +671,8 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         if ($this->isColumnModified(ListenerStatsPeer::REFERRER)) {
             $modifiedColumns[':p' . $index++]  = '"referrer"';
         }
-        if ($this->isColumnModified(ListenerStatsPeer::DEVICE)) {
-            $modifiedColumns[':p' . $index++]  = '"device"';
+        if ($this->isColumnModified(ListenerStatsPeer::USER_AGENT)) {
+            $modifiedColumns[':p' . $index++]  = '"user_agent"';
         }
 
         $sql = sprintf(
@@ -706,8 +706,8 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
                     case '"referrer"':
                         $stmt->bindValue($identifier, $this->referrer, PDO::PARAM_STR);
                         break;
-                    case '"device"':
-                        $stmt->bindValue($identifier, $this->device, PDO::PARAM_STR);
+                    case '"user_agent"':
+                        $stmt->bindValue($identifier, $this->user_agent, PDO::PARAM_STR);
                         break;
                 }
             }
@@ -858,7 +858,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
                 return $this->getDbReferrer();
                 break;
             case 7:
-                return $this->getDbDevice();
+                return $this->getDbUserAgent();
                 break;
             default:
                 return null;
@@ -895,7 +895,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
             $keys[4] => $this->getDbMount(),
             $keys[5] => $this->getDbBytes(),
             $keys[6] => $this->getDbReferrer(),
-            $keys[7] => $this->getDbDevice(),
+            $keys[7] => $this->getDbUserAgent(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -957,7 +957,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
                 $this->setDbReferrer($value);
                 break;
             case 7:
-                $this->setDbDevice($value);
+                $this->setDbUserAgent($value);
                 break;
         } // switch()
     }
@@ -990,7 +990,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         if (array_key_exists($keys[4], $arr)) $this->setDbMount($arr[$keys[4]]);
         if (array_key_exists($keys[5], $arr)) $this->setDbBytes($arr[$keys[5]]);
         if (array_key_exists($keys[6], $arr)) $this->setDbReferrer($arr[$keys[6]]);
-        if (array_key_exists($keys[7], $arr)) $this->setDbDevice($arr[$keys[7]]);
+        if (array_key_exists($keys[7], $arr)) $this->setDbUserAgent($arr[$keys[7]]);
     }
 
     /**
@@ -1009,7 +1009,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         if ($this->isColumnModified(ListenerStatsPeer::MOUNT)) $criteria->add(ListenerStatsPeer::MOUNT, $this->mount);
         if ($this->isColumnModified(ListenerStatsPeer::BYTES)) $criteria->add(ListenerStatsPeer::BYTES, $this->bytes);
         if ($this->isColumnModified(ListenerStatsPeer::REFERRER)) $criteria->add(ListenerStatsPeer::REFERRER, $this->referrer);
-        if ($this->isColumnModified(ListenerStatsPeer::DEVICE)) $criteria->add(ListenerStatsPeer::DEVICE, $this->device);
+        if ($this->isColumnModified(ListenerStatsPeer::USER_AGENT)) $criteria->add(ListenerStatsPeer::USER_AGENT, $this->user_agent);
 
         return $criteria;
     }
@@ -1079,7 +1079,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         $copyObj->setDbMount($this->getDbMount());
         $copyObj->setDbBytes($this->getDbBytes());
         $copyObj->setDbReferrer($this->getDbReferrer());
-        $copyObj->setDbDevice($this->getDbDevice());
+        $copyObj->setDbUserAgent($this->getDbUserAgent());
         if ($makeNew) {
             $copyObj->setNew(true);
             $copyObj->setDbId(NULL); // this is a auto-increment column, so set to default value
@@ -1138,7 +1138,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         $this->mount = null;
         $this->bytes = null;
         $this->referrer = null;
-        $this->device = null;
+        $this->user_agent = null;
         $this->alreadyInSave = false;
         $this->alreadyInValidation = false;
         $this->alreadyInClearAllReferencesDeep = false;

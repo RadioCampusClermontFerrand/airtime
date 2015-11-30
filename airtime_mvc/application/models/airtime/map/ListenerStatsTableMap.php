@@ -46,7 +46,7 @@ class ListenerStatsTableMap extends TableMap
         $this->addColumn('mount', 'DbMount', 'VARCHAR', true, 256, null);
         $this->addColumn('bytes', 'DbBytes', 'INTEGER', true, null, null);
         $this->addColumn('referrer', 'DbReferrer', 'VARCHAR', true, 4096, null);
-        $this->addColumn('device', 'DbDevice', 'VARCHAR', true, 4096, null);
+        $this->addColumn('user_agent', 'DbUserAgent', 'VARCHAR', true, 4096, null);
         // validators
     } // initialize()
 

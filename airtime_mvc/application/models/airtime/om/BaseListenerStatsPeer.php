@@ -53,8 +53,8 @@ abstract class BaseListenerStatsPeer
     /** the column name for the referrer field */
     const REFERRER = 'listener_stats.referrer';
 
-    /** the column name for the device field */
-    const DEVICE = 'listener_stats.device';
+    /** the column name for the user_agent field */
+    const USER_AGENT = 'listener_stats.user_agent';
 
     /** The default string format for model objects of the related table **/
     const DEFAULT_STRING_FORMAT = 'YAML';
@@ -75,11 +75,11 @@ abstract class BaseListenerStatsPeer
      * e.g. ListenerStatsPeer::$fieldNames[ListenerStatsPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbDisconnectTimestamp', 'DbGeoIp', 'DbSessionDuration', 'DbMount', 'DbBytes', 'DbReferrer', 'DbDevice', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbDisconnectTimestamp', 'dbGeoIp', 'dbSessionDuration', 'dbMount', 'dbBytes', 'dbReferrer', 'dbDevice', ),
-        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID, ListenerStatsPeer::DISCONNECT_TIMESTAMP, ListenerStatsPeer::GEO_IP, ListenerStatsPeer::SESSION_DURATION, ListenerStatsPeer::MOUNT, ListenerStatsPeer::BYTES, ListenerStatsPeer::REFERRER, ListenerStatsPeer::DEVICE, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'DISCONNECT_TIMESTAMP', 'GEO_IP', 'SESSION_DURATION', 'MOUNT', 'BYTES', 'REFERRER', 'DEVICE', ),
-        BasePeer::TYPE_FIELDNAME => array ('id', 'disconnect_timestamp', 'geo_ip', 'session_duration', 'mount', 'bytes', 'referrer', 'device', ),
+        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbDisconnectTimestamp', 'DbGeoIp', 'DbSessionDuration', 'DbMount', 'DbBytes', 'DbReferrer', 'DbUserAgent', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbDisconnectTimestamp', 'dbGeoIp', 'dbSessionDuration', 'dbMount', 'dbBytes', 'dbReferrer', 'dbUserAgent', ),
+        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID, ListenerStatsPeer::DISCONNECT_TIMESTAMP, ListenerStatsPeer::GEO_IP, ListenerStatsPeer::SESSION_DURATION, ListenerStatsPeer::MOUNT, ListenerStatsPeer::BYTES, ListenerStatsPeer::REFERRER, ListenerStatsPeer::USER_AGENT, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'DISCONNECT_TIMESTAMP', 'GEO_IP', 'SESSION_DURATION', 'MOUNT', 'BYTES', 'REFERRER', 'USER_AGENT', ),
+        BasePeer::TYPE_FIELDNAME => array ('id', 'disconnect_timestamp', 'geo_ip', 'session_duration', 'mount', 'bytes', 'referrer', 'user_agent', ),
         BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
     );
 
@@ -90,11 +90,11 @@ abstract class BaseListenerStatsPeer
      * e.g. ListenerStatsPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbDisconnectTimestamp' => 1, 'DbGeoIp' => 2, 'DbSessionDuration' => 3, 'DbMount' => 4, 'DbBytes' => 5, 'DbReferrer' => 6, 'DbDevice' => 7, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbDisconnectTimestamp' => 1, 'dbGeoIp' => 2, 'dbSessionDuration' => 3, 'dbMount' => 4, 'dbBytes' => 5, 'dbReferrer' => 6, 'dbDevice' => 7, ),
-        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID => 0, ListenerStatsPeer::DISCONNECT_TIMESTAMP => 1, ListenerStatsPeer::GEO_IP => 2, ListenerStatsPeer::SESSION_DURATION => 3, ListenerStatsPeer::MOUNT => 4, ListenerStatsPeer::BYTES => 5, ListenerStatsPeer::REFERRER => 6, ListenerStatsPeer::DEVICE => 7, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'DISCONNECT_TIMESTAMP' => 1, 'GEO_IP' => 2, 'SESSION_DURATION' => 3, 'MOUNT' => 4, 'BYTES' => 5, 'REFERRER' => 6, 'DEVICE' => 7, ),
-        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'disconnect_timestamp' => 1, 'geo_ip' => 2, 'session_duration' => 3, 'mount' => 4, 'bytes' => 5, 'referrer' => 6, 'device' => 7, ),
+        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbDisconnectTimestamp' => 1, 'DbGeoIp' => 2, 'DbSessionDuration' => 3, 'DbMount' => 4, 'DbBytes' => 5, 'DbReferrer' => 6, 'DbUserAgent' => 7, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbDisconnectTimestamp' => 1, 'dbGeoIp' => 2, 'dbSessionDuration' => 3, 'dbMount' => 4, 'dbBytes' => 5, 'dbReferrer' => 6, 'dbUserAgent' => 7, ),
+        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID => 0, ListenerStatsPeer::DISCONNECT_TIMESTAMP => 1, ListenerStatsPeer::GEO_IP => 2, ListenerStatsPeer::SESSION_DURATION => 3, ListenerStatsPeer::MOUNT => 4, ListenerStatsPeer::BYTES => 5, ListenerStatsPeer::REFERRER => 6, ListenerStatsPeer::USER_AGENT => 7, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'DISCONNECT_TIMESTAMP' => 1, 'GEO_IP' => 2, 'SESSION_DURATION' => 3, 'MOUNT' => 4, 'BYTES' => 5, 'REFERRER' => 6, 'USER_AGENT' => 7, ),
+        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'disconnect_timestamp' => 1, 'geo_ip' => 2, 'session_duration' => 3, 'mount' => 4, 'bytes' => 5, 'referrer' => 6, 'user_agent' => 7, ),
         BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
     );
 
@@ -176,7 +176,7 @@ abstract class BaseListenerStatsPeer
             $criteria->addSelectColumn(ListenerStatsPeer::MOUNT);
             $criteria->addSelectColumn(ListenerStatsPeer::BYTES);
             $criteria->addSelectColumn(ListenerStatsPeer::REFERRER);
-            $criteria->addSelectColumn(ListenerStatsPeer::DEVICE);
+            $criteria->addSelectColumn(ListenerStatsPeer::USER_AGENT);
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.disconnect_timestamp');
@@ -185,7 +185,7 @@ abstract class BaseListenerStatsPeer
             $criteria->addSelectColumn($alias . '.mount');
             $criteria->addSelectColumn($alias . '.bytes');
             $criteria->addSelectColumn($alias . '.referrer');
-            $criteria->addSelectColumn($alias . '.device');
+            $criteria->addSelectColumn($alias . '.user_agent');
         }
     }
 

@@ -793,7 +793,7 @@ CREATE TABLE "listener_stats"
     "mount" VARCHAR(256) NOT NULL,
     "bytes" INTEGER NOT NULL,
     "referrer" VARCHAR(4096) NOT NULL,
-    "device" VARCHAR(4096) NOT NULL,
+    "user_agent" VARCHAR(4096) NOT NULL,
     PRIMARY KEY ("id")
 );
 
