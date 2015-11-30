@@ -778,6 +778,25 @@ CREATE TABLE "podcast_episodes"
     PRIMARY KEY ("id")
 );
 
+-----------------------------------------------------------------------
+-- listener_stats
+-----------------------------------------------------------------------
+
+DROP TABLE IF EXISTS "listener_stats" CASCADE;
+
+CREATE TABLE "listener_stats"
+(
+    "id" serial NOT NULL,
+    "disconnect_timestamp" TIMESTAMP NOT NULL,
+    "geo_ip" VARCHAR(256) NOT NULL,
+    "session_duration" INTEGER NOT NULL,
+    "mount" VARCHAR(256) NOT NULL,
+    "bytes" INTEGER NOT NULL,
+    "referrer" VARCHAR(4096) NOT NULL,
+    "device" VARCHAR(4096) NOT NULL,
+    PRIMARY KEY ("id")
+);
+
 ALTER TABLE "cc_files" ADD CONSTRAINT "cc_files_owner_fkey"
     FOREIGN KEY ("owner_id")
     REFERENCES "cc_subjs" ("id");

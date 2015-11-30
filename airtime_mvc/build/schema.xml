@@ -622,4 +622,15 @@
       <reference local="podcast_id" foreign="id" />
     </foreign-key>
   </table>
+
+  <table name="listener_stats" phpName="ListenerStats">
+    <column name="id" phpName="DbId" primaryKey="true" type="INTEGER" autoIncrement="true" required="true" />
+    <column name="disconnect_timestamp" phpName="DbDisconnectTimestamp" type="TIMESTAMP" required="true" />
+    <column name="geo_ip" phpName="DbGeoIp" type="VARCHAR" size="256" required="true" />
+    <column name="session_duration" phpName="DbSessionDuration" type="INTEGER" required="true" />
+    <column name="mount" phpName="DbMount" type="VARCHAR" size="256" required="true" />
+    <column name="bytes" phpName="DbBytes" type="INTEGER" required="true" />
+    <column name="referrer" phpName="DbReferrer" type="VARCHAR" size="4096" required="true" />
+    <column name="device" phpName="DbDevice" type="VARCHAR" size="4096" required="true" />
+  </table>
 </database>
