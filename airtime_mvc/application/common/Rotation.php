@@ -6,7 +6,7 @@ class Rotation {
     private static $_HISTORY_LOOKUP_SECONDS = 3600;
 
     /** @var int default Rotation duration */
-    private static $_DEFAULT_ROTATION_LENGTH = 3600;
+    private static $_DEFAULT_ROTATION_LENGTH = 1800;
 
     /**
      * @var PropelObjectCollection stores played track history from the past HISTORY_LOOKUP_SECONDS seconds.
@@ -21,6 +21,8 @@ class Rotation {
     /** @var stdClass[] array of filters to narrow Rotation criteria */
     private $_filters = array();
 
+    private $_lastScheduled = array();
+
     /** @var int time, in seconds, left to fill in the Rotation */
     private $_timeToFill;
 
@@ -31,16 +33,7 @@ class Rotation {
     private $_trackLengthMin;
 
     /** @var int[] show instances to schedule the Rotation in */
-    private $_showInstances;
-
-    /**
-     * Wakeup call function, called when Rotation object is successfully rebuilt with unserialize.
-     *
-     * @see unserialize
-     */
-    public function __wakeup() {
-        $this->schedule();
-    }
+    private $_showInstances = array();
 
     /**
      * Rotation constructor.
@@ -120,7 +113,7 @@ class Rotation {
             $deferredInstances[$ts->format(DEFAULT_TIMESTAMP_FORMAT)] = $instance->getDbId();
         }
         $this->_showInstances = $deferredInstances;
-        // TODO: build deferral task by serializing Rotation object
+        // TODO: build deferral task
         return $this;
     }
 
@@ -132,10 +125,13 @@ class Rotation {
      */
     public function schedule() {
         $instances = $this->_showInstances;
+        $currentInstance = $this->_getCurrentShowInstance();
         if (empty($instances)) {
-            $currentInstance = $this->_getCurrentShowInstance();
-            Logging::info($currentInstance);
             if ($currentInstance > 0) $instances[] = $currentInstance;
+        }
+
+        if (in_array($currentInstance, $instances)) {
+            $this->_accountForScheduledTracks($currentInstance);
         }
 
         $this->_build();
@@ -144,7 +140,8 @@ class Rotation {
             $now = DateTime::createFromFormat(DEFAULT_TIMESTAMP_FORMAT, "now", new DateTimeZone("UTC"));
             // Don't schedule deferred instances until we're at or past their deferral time
             if (is_int($ts) || $now >= $ts) {
-                $this->_scheduleFallbackRotation($instance);
+                $after = array_key_exists($instance, $this->_lastScheduled) ? $this->_lastScheduled[$instance] : 0;
+                $this->_scheduleFallbackRotation($instance, $after);
             }
             // TODO: add instances to blacklist so we don't schedule the same Rotation multiple times?
         }
@@ -158,7 +155,7 @@ class Rotation {
     private function _build() {
         // Get a PropelObjectCollection of all suitable tracks so we only have to go to the database once
         $suitableTracks = $this->_getSuitableTracks($this->_timeToFill)->getData();
-        while ($this->_timeToFill > 0) {
+        while (!empty($suitableTracks) && $this->_timeToFill > 0) {
             $track = $this->_pickSuitableTrack($suitableTracks, $key);
             if (empty($track)) {
                 if (empty($suitableTracks) && $this->_timeToFill > $this->_trackLengthMin) {
@@ -172,6 +169,27 @@ class Rotation {
             $this->_timeToFill -= Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
             $this->_tracks[] = $track;
             array_splice($suitableTracks, $key, 1);
+        }
+    }
+
+    /**
+     * Adds any currently scheduled tracks to the Rotation
+     *
+     * @param int $instance
+     */
+    private function _accountForScheduledTracks($instance) {
+        $seconds = $this->_timeToFill;
+        $future = new DateTime(null, new DateTimeZone("UTC"));
+        $now = new DateTime(null, new DateTimeZone("UTC"));
+        $future->add(new DateInterval("PT{$seconds}S"));
+        $tracks = CcScheduleQuery::create()
+            ->filterByDbInstanceId($instance)
+            ->filterByDbStarts($future->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::LESS_THAN)
+            ->filterByDbEnds($now->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::GREATER_THAN)
+            ->find();
+        foreach ($tracks as $track) {
+            $this->_lastScheduled[$instance] = $track->getDbId();
+            $this->_timeToFill -= Application_Common_DateHelper::playlistTimeToSeconds($track->getDbClipLength());
         }
     }
 
@@ -264,17 +282,18 @@ class Rotation {
     /**
      *
      * @param int $showInstance
+     * @param int $scheduleAfter
      *
      * @throws Exception
      */
-    private function _scheduleFallbackRotation($showInstance) {
+    private function _scheduleFallbackRotation($showInstance, $scheduleAfter) {
         if (!Zend_Session::isStarted()) Zend_Session::start();
         $scheduler = new Application_Model_Scheduler();
         // Ignore user permissions so the fallbacks can be set on non-user (pypo) requests
         $scheduler->setCheckUserPermissions(false);
         $scheduledItems = array(
             array(
-                "id" => 0,
+                "id" => $scheduleAfter,
                 "instance" => $showInstance,
                 "timestamp" => time()
             )

@@ -1123,21 +1123,30 @@ SQL;
         self::createInputHarborKickTimes($data, $range_start, $range_end);
         self::createScheduledEvents($data, $range_start, $range_end);
 
-        $now = new DateTime(null, new DateTimeZone("UTC"));
-        $now->add(new DateInterval("PT60S"));
-        $fallbackLimit = $now->format('Y-m-d-H-i-s');
-        if (empty($data['media']) || array_keys($data['media'])[0] > $fallbackLimit) {
-            Application_Model_Schedule::createFallbackSchedule();
-        }
+        self::setupSmartPlaylistFallback($data);
 
         //self::foldData($data["media"]);
         return $data;
     }
 
+    public static function setupSmartPlaylistFallback($data) {
+        $future = new DateTime(null, new DateTimeZone("UTC"));
+        $now = new DateTime(null, new DateTimeZone("UTC"));
+        $future->add(new DateInterval("PT30M"));
+        $last = $now->format('Y-m-d-H-i-s');
+        $now->add(new DateInterval("PT10S"));
+        $fallbackLimit = $future->format('Y-m-d-H-i-s');
+        foreach ($data['media'] as $k => $v) {
+            $last = $k > $last ? $k : $last;
+        }
+        if (empty($data['media']) || array_keys($data['media'])[0] > $now->format('Y-m-d-H-i-s') || $last < $fallbackLimit) {
+            Application_Model_Schedule::createFallbackSchedule();
+        }
+    }
+
     public static function createFallbackSchedule() {
         $rotation = new Rotation();
         $rotation->schedule();
-
         Application_Model_RabbitMq::PushSchedule();
     }
 

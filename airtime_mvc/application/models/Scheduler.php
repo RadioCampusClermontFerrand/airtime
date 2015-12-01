@@ -524,8 +524,8 @@ class Application_Model_Scheduler
         $itemStartDT = $instance->getDbStarts(null);
         foreach ($schedule as $item) {
             $itemEndDT = $this->findEndTime($itemStartDT, $item->getDbClipLength());
-            // If the track has already ended, don't change it.
-            if ($itemEndDT < $now) {
+            // If the track has already started, don't change it.
+            if ($itemStartDT < $now) {
                 $itemStartDT = $itemEndDT;
                 continue;
             }
