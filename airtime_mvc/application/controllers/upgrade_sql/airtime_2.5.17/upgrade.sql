@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS "listener_stats"
     "session_duration" INTEGER NOT NULL,
     "mount" VARCHAR(256) NOT NULL,
     "bytes" INTEGER NOT NULL,
-    "referrer" VARCHAR(4096) NOT NULL,
-    "device" VARCHAR(4096) NOT NULL,
+    "referrer" VARCHAR(4096),
+    "user_agent" VARCHAR(4096),
     PRIMARY KEY ("id")
 );

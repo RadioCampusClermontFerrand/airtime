@@ -792,8 +792,8 @@ CREATE TABLE "listener_stats"
     "session_duration" INTEGER NOT NULL,
     "mount" VARCHAR(256) NOT NULL,
     "bytes" INTEGER NOT NULL,
-    "referrer" VARCHAR(4096) NOT NULL,
-    "user_agent" VARCHAR(4096) NOT NULL,
+    "referrer" VARCHAR(4096),
+    "user_agent" VARCHAR(4096),
     PRIMARY KEY ("id")
 );
 
