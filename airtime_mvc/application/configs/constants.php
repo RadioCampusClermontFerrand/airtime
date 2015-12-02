@@ -41,6 +41,7 @@ define('DEFAULT_LOGO_PLACEHOLDER', 1);
 define('DEFAULT_LOGO_FILE', 'images/airtime_logo.png');
 define('DEFAULT_TIMESTAMP_FORMAT', 'Y-m-d H:i:s');
 define('DEFAULT_MICROTIME_FORMAT', 'Y-m-d H:i:s.u');
+define('DEFAULT_TIMEZONE_FORMAT', 'Y-m-d H:i:s T');
 define('DEFAULT_ICECAST_PORT', 8000);
 define('DEFAULT_ICECAST_PASS', 'hackme');
 define('DEFAULT_SHOW_COLOR', '76aca5');

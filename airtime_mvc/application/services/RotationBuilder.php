@@ -21,7 +21,7 @@ class RotationBuilder {
     /** @var stdClass[] array of filters to narrow Rotation criteria */
     protected $_filters = array();
 
-    /** @var int show instance to schedule the Rotation in */
+    /** @var CcShowInstances show instance to schedule the Rotation in */
     protected $_showInstance;
 
     /** @var int last track scheduled in the instance so we know where to schedule after */
@@ -39,8 +39,8 @@ class RotationBuilder {
     /**
      * Rotation constructor.
      *
-     * @param int      $instance show instance to schedule the Rotation in
-     * @param int|null [$length] optional override for the default Rotation length
+     * @param CcShowInstances $instance show instance to schedule the Rotation in
+     * @param int|null        [$length] optional override for the default Rotation length
      */
     public function __construct($instance, $length = null) {
         $this->_history = $this->_getHistory();
@@ -92,12 +92,29 @@ class RotationBuilder {
      * @return boolean true if scheduling was successful, otherwise false
      */
     public function schedule() {
+        $this->_accountForRemainingShowTime();
         $this->_accountForScheduledTracks();
+
         $this->_build();
         $result = true;
         $after = $this->_lastScheduled ? $this->_lastScheduled : 0;
-        $result = $result && $this->_addToSchedule($this->_showInstance, $after);
+        $result = $result && $this->_addToSchedule($after);
         return $result;
+    }
+
+    /**
+     * If the time left to schedule would go over the remaining time in the show instance,
+     * subtract the difference from the Rotation time to fill.
+     */
+    protected function _accountForRemainingShowTime() {
+        $instanceEnd = DateTime::createFromFormat(
+            DEFAULT_TIMESTAMP_FORMAT, $this->_showInstance->getDbEnds(), new DateTimeZone("UTC")
+        );
+        $instanceEndUnix = strtotime($instanceEnd->format(DEFAULT_TIMEZONE_FORMAT));
+        $secondsRemaining = ($instanceEndUnix - time());
+        if ($secondsRemaining < $this->_timeToFill) {
+            $this->_timeToFill -= ($this->_timeToFill - $secondsRemaining);
+        }
     }
 
     /**
@@ -110,7 +127,7 @@ class RotationBuilder {
         $now = new DateTime(null, new DateTimeZone("UTC"));
         $future->add(new DateInterval("PT{$this->_timeToFill}S"));
         $tracks = CcScheduleQuery::create()
-            ->filterByDbInstanceId($this->_showInstance)
+            ->filterByDbInstanceId($this->_showInstance->getDbId())
             ->filterByDbStarts($future->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::LESS_THAN)
             ->filterByDbEnds($now->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::GREATER_THAN)
             ->orderByDbEnds()
@@ -182,7 +199,7 @@ class RotationBuilder {
             $trackLength = Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
             if ($trackLength > $this->_timeToFill) {
                 array_splice($suitableTracks, $key, 1);
-                $track = null;
+                // $track = null;
             } else {
                 if (empty($this->_trackLengthMin) || $this->_trackLengthMin > $trackLength) {
                     $this->_trackLengthMin = $trackLength;
@@ -191,22 +208,6 @@ class RotationBuilder {
             }
         }
         return $track;
-    }
-
-    /**
-     * Get the current show instance ID.
-     *
-     * @return int the current show instance ID, or 0 if no current instance exists.
-     *
-     * @throws Exception
-     */
-    protected function _getCurrentShowInstance() {
-        $future = $now = new DateTime(null, new DateTimeZone("UTC"));
-        $timespan = static::$_HISTORY_LOOKUP_SECONDS;
-        $future->add(new DateInterval("PT{$timespan}S"));
-        // TODO: default to the next show instance if no current instance exists?
-        $shows = Application_Model_Show::getPrevCurrentNext($now, $future->format(DEFAULT_TIMESTAMP_FORMAT), 1);
-        return count($shows['currentShow']) > 0 ? $shows['currentShow']['instance_id'] : 0;
     }
 
     /**
@@ -236,13 +237,12 @@ class RotationBuilder {
 
     /**
      *
-     * @param int $showInstance
      * @param int $scheduleAfter track to schedule the Rotation after,
      *                           defaults to the beginning of the show
      *
      * @return boolean
      */
-    protected function _addToSchedule($showInstance, $scheduleAfter = 0) {
+    protected function _addToSchedule($scheduleAfter = 0) {
         if (!Zend_Session::isStarted()) Zend_Session::start();
         $scheduler = new Application_Model_Scheduler();
         // Ignore user permissions so the fallbacks can be set on non-user (pypo) requests
@@ -250,7 +250,7 @@ class RotationBuilder {
         $scheduledItems = array(
             array(
                 "id" => $scheduleAfter,
-                "instance" => $showInstance,
+                "instance" => $this->_showInstance->getDbId(),
                 "timestamp" => time()
             )
         );

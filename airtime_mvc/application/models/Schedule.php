@@ -1130,7 +1130,7 @@ SQL;
     }
 
     public static function scheduleRotations() {
-        $now = DateTime::createFromFormat(DEFAULT_TIMESTAMP_FORMAT, "now", new DateTimeZone("UTC"));
+        $now = gmdate(DEFAULT_TIMESTAMP_FORMAT);
         $nextInstance = CcShowInstancesQuery::create()
             ->filterByDbEnds($now, Criteria::GREATER_THAN)
             ->findOne();
@@ -1149,7 +1149,7 @@ SQL;
      * @param CcShowInstances $instance
      */
     public static function scheduleSmartPlaylist($instance) {
-        $rotation = new SmartPlaylistBuilder($instance->getDbId());
+        $rotation = new SmartPlaylistBuilder($instance);
         if ($rotation->schedule()) {
             Application_Model_RabbitMq::PushSchedule();
         }
@@ -1162,9 +1162,10 @@ SQL;
     public static function scheduleRotation($instance) {
         $length = $instance->getDbEnds(null) - $instance->getDbStarts(null);
         $length = Application_Common_DateHelper::calculateLengthInSeconds($length->format("H:i:s"));
-        $rotation = new RotationBuilder($instance->getDbId(), $length);
+        $rotation = new RotationBuilder($instance, $length);
         if ($rotation->schedule()) {
             Application_Model_RabbitMq::PushSchedule();
+            // $instance->setDbRotationScheduled(true)->save();
         }
     }
 
