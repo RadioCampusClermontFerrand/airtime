@@ -10,8 +10,18 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
         $router = $front->getRouter();
 
         $restRoute = new Zend_Rest_Route($front, array(), array(
-            'rest'=> array('media', 'show-image', 'podcast', 'podcast-episodes')));
+            'rest'=> array('media', 'show-image', 'podcast', 'podcast-episodes', 'listener-stats')));
         assert($router->addRoute('rest', $restRoute));
+
+        $listenerStatsGeolocation = new Zend_Controller_Router_Route(
+            'rest/listener-stats/geolocation',
+            array(
+                'controller' => 'listener-stats',
+                'action' => 'geolocation',
+                'module' => 'rest'
+            )
+        );
+        $router->addRoute('listener-stats-geolocation', $listenerStatsGeolocation);
 
         $podcastBulkRoute = new Zend_Controller_Router_Route(
             'rest/podcast/bulk',
