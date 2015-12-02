@@ -400,7 +400,7 @@ class Billing
         $result = Billing::makeRequest($credentials["url"], $query_string);
 
         $invoices = array();
-        if ($result["invoices"]) {
+        if (array_key_exists("invoices", $result) && $result["invoices"]) {
             $invoices = $result["invoices"]["invoice"];
         }
         return $invoices;

@@ -1123,31 +1123,49 @@ SQL;
         self::createInputHarborKickTimes($data, $range_start, $range_end);
         self::createScheduledEvents($data, $range_start, $range_end);
 
-        self::setupSmartPlaylistFallback($data);
+        self::scheduleRotations();
 
         //self::foldData($data["media"]);
         return $data;
     }
 
-    public static function setupSmartPlaylistFallback($data) {
-        $future = new DateTime(null, new DateTimeZone("UTC"));
-        $now = new DateTime(null, new DateTimeZone("UTC"));
-        $future->add(new DateInterval("PT30M"));
-        $last = $now->format('Y-m-d-H-i-s');
-        $now->add(new DateInterval("PT10S"));
-        $fallbackLimit = $future->format('Y-m-d-H-i-s');
-        foreach ($data['media'] as $k => $v) {
-            $last = $k > $last ? $k : $last;
-        }
-        if (empty($data['media']) || array_keys($data['media'])[0] > $now->format('Y-m-d-H-i-s') || $last < $fallbackLimit) {
-            Application_Model_Schedule::createFallbackSchedule();
+    public static function scheduleRotations() {
+        $now = DateTime::createFromFormat(DEFAULT_TIMESTAMP_FORMAT, "now", new DateTimeZone("UTC"));
+        $nextInstance = CcShowInstancesQuery::create()
+            ->filterByDbEnds($now, Criteria::GREATER_THAN)
+            ->findOne();
+        if ($nextInstance && !empty($nextInstance->getDbRotation())) {
+            $rotation = RotationQuery::create()->findPk($nextInstance->getDbRotation());
+            switch ($rotation->getDbType()) {
+                case "smart": self::scheduleSmartPlaylist($nextInstance);
+                    break;
+                default: self::scheduleRotation($nextInstance);
+            }
         }
     }
 
-    public static function createFallbackSchedule() {
-        $rotation = new Rotation();
-        $rotation->schedule();
-        Application_Model_RabbitMq::PushSchedule();
+    /**
+     *
+     * @param CcShowInstances $instance
+     */
+    public static function scheduleSmartPlaylist($instance) {
+        $rotation = new SmartPlaylistBuilder($instance->getDbId());
+        if ($rotation->schedule()) {
+            Application_Model_RabbitMq::PushSchedule();
+        }
+    }
+
+    /**
+     *
+     * @param CcShowInstances $instance
+     */
+    public static function scheduleRotation($instance) {
+        $length = $instance->getDbEnds(null) - $instance->getDbStarts(null);
+        $length = Application_Common_DateHelper::calculateLengthInSeconds($length->format("H:i:s"));
+        $rotation = new RotationBuilder($instance->getDbId(), $length);
+        if ($rotation->schedule()) {
+            Application_Model_RabbitMq::PushSchedule();
+        }
     }
 
     public static function deleteAll()

@@ -506,3 +506,25 @@ class AirtimeUpgrader2516 extends AirtimeUpgrader
         return '2.5.16';
     }
 }
+
+/**
+ * Class AirtimeUpgrader2517
+ *
+ * SAAS-1260 - Rotations feature upgrade. Introduces Rotation table and adds a foreign key
+ *             onto it from cc_show_instances.
+ *
+ *      id              -> int          PK
+ *      type            -> string       Rotation type
+ */
+class AirtimeUpgrader2517 extends AirtimeUpgrader
+{
+    protected function getSupportedSchemaVersions() {
+        return array(
+            '2.5.16'
+        );
+    }
+
+    public function getNewVersion() {
+        return '2.5.17';
+    }
+}

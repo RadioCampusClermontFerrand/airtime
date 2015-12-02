@@ -113,6 +113,12 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
     protected $modified_instance;
 
     /**
+     * The value for the rotation field.
+     * @var        int
+     */
+    protected $rotation;
+
+    /**
      * @var        CcShow
      */
     protected $aCcShow;
@@ -126,6 +132,11 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
      * @var        CcFiles
      */
     protected $aCcFiles;
+
+    /**
+     * @var        Rotation
+     */
+    protected $aRotation;
 
     /**
      * @var        PropelObjectCollection|CcShowInstances[] Collection to store aggregation of CcShowInstances objects.
@@ -448,6 +459,17 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
     }
 
     /**
+     * Get the [rotation] column value.
+     *
+     * @return int
+     */
+    public function getDbRotation()
+    {
+
+        return $this->rotation;
+    }
+
+    /**
      * Set the value of [id] column.
      *
      * @param  int $v new value
@@ -749,6 +771,31 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
     } // setDbModifiedInstance()
 
     /**
+     * Set the value of [rotation] column.
+     *
+     * @param  int $v new value
+     * @return CcShowInstances The current object (for fluent API support)
+     */
+    public function setDbRotation($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->rotation !== $v) {
+            $this->rotation = $v;
+            $this->modifiedColumns[] = CcShowInstancesPeer::ROTATION;
+        }
+
+        if ($this->aRotation !== null && $this->aRotation->getDbId() !== $v) {
+            $this->aRotation = null;
+        }
+
+
+        return $this;
+    } // setDbRotation()
+
+    /**
      * Indicates whether the columns in this object are only set to default values.
      *
      * This method can be used in conjunction with isModified() to indicate whether an object is both
@@ -813,6 +860,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             $this->created = ($row[$startcol + 10] !== null) ? (string) $row[$startcol + 10] : null;
             $this->last_scheduled = ($row[$startcol + 11] !== null) ? (string) $row[$startcol + 11] : null;
             $this->modified_instance = ($row[$startcol + 12] !== null) ? (boolean) $row[$startcol + 12] : null;
+            $this->rotation = ($row[$startcol + 13] !== null) ? (int) $row[$startcol + 13] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -822,7 +870,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 13; // 13 = CcShowInstancesPeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 14; // 14 = CcShowInstancesPeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating CcShowInstances object", $e);
@@ -853,6 +901,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         }
         if ($this->aCcFiles !== null && $this->file_id !== $this->aCcFiles->getDbId()) {
             $this->aCcFiles = null;
+        }
+        if ($this->aRotation !== null && $this->rotation !== $this->aRotation->getDbId()) {
+            $this->aRotation = null;
         }
     } // ensureConsistency
 
@@ -896,6 +947,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             $this->aCcShow = null;
             $this->aCcShowInstancesRelatedByDbOriginalShow = null;
             $this->aCcFiles = null;
+            $this->aRotation = null;
             $this->collCcShowInstancessRelatedByDbId = null;
 
             $this->collCcSchedules = null;
@@ -1041,6 +1093,13 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
                 $this->setCcFiles($this->aCcFiles);
             }
 
+            if ($this->aRotation !== null) {
+                if ($this->aRotation->isModified() || $this->aRotation->isNew()) {
+                    $affectedRows += $this->aRotation->save($con);
+                }
+                $this->setRotation($this->aRotation);
+            }
+
             if ($this->isNew() || $this->isModified()) {
                 // persist changes
                 if ($this->isNew()) {
@@ -1179,6 +1238,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         if ($this->isColumnModified(CcShowInstancesPeer::MODIFIED_INSTANCE)) {
             $modifiedColumns[':p' . $index++]  = '"modified_instance"';
         }
+        if ($this->isColumnModified(CcShowInstancesPeer::ROTATION)) {
+            $modifiedColumns[':p' . $index++]  = '"rotation"';
+        }
 
         $sql = sprintf(
             'INSERT INTO "cc_show_instances" (%s) VALUES (%s)',
@@ -1228,6 +1290,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
                         break;
                     case '"modified_instance"':
                         $stmt->bindValue($identifier, $this->modified_instance, PDO::PARAM_BOOL);
+                        break;
+                    case '"rotation"':
+                        $stmt->bindValue($identifier, $this->rotation, PDO::PARAM_INT);
                         break;
                 }
             }
@@ -1339,6 +1404,12 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
                 }
             }
 
+            if ($this->aRotation !== null) {
+                if (!$this->aRotation->validate($columns)) {
+                    $failureMap = array_merge($failureMap, $this->aRotation->getValidationFailures());
+                }
+            }
+
 
             if (($retval = CcShowInstancesPeer::doValidate($this, $columns)) !== true) {
                 $failureMap = array_merge($failureMap, $retval);
@@ -1443,6 +1514,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             case 12:
                 return $this->getDbModifiedInstance();
                 break;
+            case 13:
+                return $this->getDbRotation();
+                break;
             default:
                 return null;
                 break;
@@ -1485,6 +1559,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             $keys[10] => $this->getDbCreated(),
             $keys[11] => $this->getDbLastScheduled(),
             $keys[12] => $this->getDbModifiedInstance(),
+            $keys[13] => $this->getDbRotation(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -1500,6 +1575,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             }
             if (null !== $this->aCcFiles) {
                 $result['CcFiles'] = $this->aCcFiles->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            }
+            if (null !== $this->aRotation) {
+                $result['Rotation'] = $this->aRotation->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
             }
             if (null !== $this->collCcShowInstancessRelatedByDbId) {
                 $result['CcShowInstancessRelatedByDbId'] = $this->collCcShowInstancessRelatedByDbId->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
@@ -1583,6 +1661,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             case 12:
                 $this->setDbModifiedInstance($value);
                 break;
+            case 13:
+                $this->setDbRotation($value);
+                break;
         } // switch()
     }
 
@@ -1620,6 +1701,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         if (array_key_exists($keys[10], $arr)) $this->setDbCreated($arr[$keys[10]]);
         if (array_key_exists($keys[11], $arr)) $this->setDbLastScheduled($arr[$keys[11]]);
         if (array_key_exists($keys[12], $arr)) $this->setDbModifiedInstance($arr[$keys[12]]);
+        if (array_key_exists($keys[13], $arr)) $this->setDbRotation($arr[$keys[13]]);
     }
 
     /**
@@ -1644,6 +1726,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         if ($this->isColumnModified(CcShowInstancesPeer::CREATED)) $criteria->add(CcShowInstancesPeer::CREATED, $this->created);
         if ($this->isColumnModified(CcShowInstancesPeer::LAST_SCHEDULED)) $criteria->add(CcShowInstancesPeer::LAST_SCHEDULED, $this->last_scheduled);
         if ($this->isColumnModified(CcShowInstancesPeer::MODIFIED_INSTANCE)) $criteria->add(CcShowInstancesPeer::MODIFIED_INSTANCE, $this->modified_instance);
+        if ($this->isColumnModified(CcShowInstancesPeer::ROTATION)) $criteria->add(CcShowInstancesPeer::ROTATION, $this->rotation);
 
         return $criteria;
     }
@@ -1719,6 +1802,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         $copyObj->setDbCreated($this->getDbCreated());
         $copyObj->setDbLastScheduled($this->getDbLastScheduled());
         $copyObj->setDbModifiedInstance($this->getDbModifiedInstance());
+        $copyObj->setDbRotation($this->getDbRotation());
 
         if ($deepCopy && !$this->startCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
@@ -1949,6 +2033,58 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         }
 
         return $this->aCcFiles;
+    }
+
+    /**
+     * Declares an association between this object and a Rotation object.
+     *
+     * @param                  Rotation $v
+     * @return CcShowInstances The current object (for fluent API support)
+     * @throws PropelException
+     */
+    public function setRotation(Rotation $v = null)
+    {
+        if ($v === null) {
+            $this->setDbRotation(NULL);
+        } else {
+            $this->setDbRotation($v->getDbId());
+        }
+
+        $this->aRotation = $v;
+
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the Rotation object, it will not be re-added.
+        if ($v !== null) {
+            $v->addCcShowInstances($this);
+        }
+
+
+        return $this;
+    }
+
+
+    /**
+     * Get the associated Rotation object
+     *
+     * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
+     * @return Rotation The associated Rotation object.
+     * @throws PropelException
+     */
+    public function getRotation(PropelPDO $con = null, $doQuery = true)
+    {
+        if ($this->aRotation === null && ($this->rotation !== null) && $doQuery) {
+            $this->aRotation = RotationQuery::create()->findPk($this->rotation, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aRotation->addCcShowInstancess($this);
+             */
+        }
+
+        return $this->aRotation;
     }
 
 
@@ -2244,6 +2380,31 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
     {
         $query = CcShowInstancesQuery::create(null, $criteria);
         $query->joinWith('CcFiles', $join_behavior);
+
+        return $this->getCcShowInstancessRelatedByDbId($query, $con);
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this CcShowInstances is new, it will return
+     * an empty collection; or if this CcShowInstances has previously
+     * been saved, it will retrieve related CcShowInstancessRelatedByDbId from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in CcShowInstances.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return PropelObjectCollection|CcShowInstances[] List of CcShowInstances objects
+     */
+    public function getCcShowInstancessRelatedByDbIdJoinRotation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $query = CcShowInstancesQuery::create(null, $criteria);
+        $query->joinWith('Rotation', $join_behavior);
 
         return $this->getCcShowInstancessRelatedByDbId($query, $con);
     }
@@ -2791,6 +2952,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         $this->created = null;
         $this->last_scheduled = null;
         $this->modified_instance = null;
+        $this->rotation = null;
         $this->alreadyInSave = false;
         $this->alreadyInValidation = false;
         $this->alreadyInClearAllReferencesDeep = false;
@@ -2838,6 +3000,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             if ($this->aCcFiles instanceof Persistent) {
               $this->aCcFiles->clearAllReferences($deep);
             }
+            if ($this->aRotation instanceof Persistent) {
+              $this->aRotation->clearAllReferences($deep);
+            }
 
             $this->alreadyInClearAllReferencesDeep = false;
         } // if ($deep)
@@ -2857,6 +3022,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         $this->aCcShow = null;
         $this->aCcShowInstancesRelatedByDbOriginalShow = null;
         $this->aCcFiles = null;
+        $this->aRotation = null;
     }
 
     /**

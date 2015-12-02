@@ -1,64 +1,51 @@
 <?php
 
-class Rotation {
+class RotationBuilder {
 
     /** @var int length of time, in seconds, to get history for when finding new tracks for rotation */
-    private static $_HISTORY_LOOKUP_SECONDS = 3600;
+    protected static $_HISTORY_LOOKUP_SECONDS = 3600;
 
     /** @var int default Rotation duration */
-    private static $_DEFAULT_ROTATION_LENGTH = 1800;
+    protected static $_DEFAULT_ROTATION_LENGTH = 3600;
 
     /**
-     * @var PropelObjectCollection stores played track history from the past HISTORY_LOOKUP_SECONDS seconds.
+     * @var PropelObjectCollection stores played track history from the past $_HISTORY_LOOKUP_SECONDS seconds.
      *                             Tracks in history are ignored when finding new tracks for rotation
-     * @see Rotation::HISTORY_LOOKUP_SECONDS
+     * @see Rotation::$_HISTORY_LOOKUP_SECONDS
      */
-    private $_history;
+    protected $_history;
 
     /** @var CcFiles[] internal rotation tracks array */
-    private $_tracks = array();
+    protected $_tracks = array();
 
     /** @var stdClass[] array of filters to narrow Rotation criteria */
-    private $_filters = array();
+    protected $_filters = array();
 
-    private $_lastScheduled = array();
+    /** @var int show instance to schedule the Rotation in */
+    protected $_showInstance;
+
+    /** @var int last track scheduled in the instance so we know where to schedule after */
+    protected $_lastScheduled;
 
     /** @var int time, in seconds, left to fill in the Rotation */
-    private $_timeToFill;
+    protected $_timeToFill;
 
     /**
      * @var int shortest track length in the Rotation.
      *          Used to determine whether to reschedule tracks to fill the Rotation
      */
-    private $_trackLengthMin;
-
-    /** @var int[] show instances to schedule the Rotation in */
-    private $_showInstances = array();
+    protected $_trackLengthMin;
 
     /**
      * Rotation constructor.
      *
+     * @param int      $instance show instance to schedule the Rotation in
      * @param int|null [$length] optional override for the default Rotation length
      */
-    public function __construct($length = null) {
+    public function __construct($instance, $length = null) {
         $this->_history = $this->_getHistory();
-        $this->_timeToFill = is_null($length) ? self::$_DEFAULT_ROTATION_LENGTH : $length;
-    }
-
-    /**
-     * Add one or more instances to the internal instance list. Calls to schedule() and defer()
-     * will apply to all instances in this list.
-     *
-     * @param int|int[] $showInstances one or more show instances to add to the internal instances list
-     *
-     * @return $this self, for chaining
-     *
-     * @see Rotation::schedule()
-     * @see Rotation::defer()
-     */
-    public function addInstances($showInstances) {
-        array_merge($this->_showInstances, is_array($showInstances) ? $showInstances : [$showInstances]);
-        return $this;
+        $this->_showInstance = $instance;
+        $this->_timeToFill = is_null($length) ? static::$_DEFAULT_ROTATION_LENGTH : $length;
     }
 
     /**
@@ -84,36 +71,17 @@ class Rotation {
      * @param CcFiles $track the track to include
      *
      * @return $this self, for chaining
+     *
+     * @throws Exception
      */
     public function includeTrack(CcFiles $track) {
         $length = Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
         if ($length < $this->_timeToFill) {
-            Logging::warn("Couldn't include track $track; track length is greater than remaining rotation length");
             $this->_timeToFill -= $length;
             $this->_tracks[] = $track;
+        } else {
+            throw new Exception("Couldn't include track; track length is greater than remaining rotation length");
         }
-        return $this;
-    }
-
-    /**
-     * Add a promise to schedule this Rotation to each of the internal instances,
-     * defaulting to the current instance, if it exists.
-     *
-     * @param int [$secondsInAdvance] number seconds before the show instance or instances start
-     *                                to schedule the Rotation. Defaults to 300 (5 minutes)
-     *
-     * @return $this self, for chaining
-     */
-    public function defer($secondsInAdvance = 300) {
-        $deferredInstances = array();
-        $instances = CcShowInstancesQuery::create()->findPks($this->_showInstances);
-        foreach ($instances as $instance) {
-            /** @var DateTime $ts */
-            $ts = $instance->getDbStarts(null)->sub(new DateInterval("PT{$secondsInAdvance}S"));
-            $deferredInstances[$ts->format(DEFAULT_TIMESTAMP_FORMAT)] = $instance->getDbId();
-        }
-        $this->_showInstances = $deferredInstances;
-        // TODO: build deferral task
         return $this;
     }
 
@@ -121,38 +89,44 @@ class Rotation {
      * Schedule the internal tracks array to each of the internal instances,
      * defaulting to the current instance, if it exists.
      *
-     * @return $this self, for chaining
+     * @return boolean true if scheduling was successful, otherwise false
      */
     public function schedule() {
-        $instances = $this->_showInstances;
-        $currentInstance = $this->_getCurrentShowInstance();
-        if (empty($instances)) {
-            if ($currentInstance > 0) $instances[] = $currentInstance;
-        }
-
-        if (in_array($currentInstance, $instances)) {
-            $this->_accountForScheduledTracks($currentInstance);
-        }
-
+        $this->_accountForScheduledTracks();
         $this->_build();
+        $result = true;
+        $after = $this->_lastScheduled ? $this->_lastScheduled : 0;
+        $result = $result && $this->_addToSchedule($this->_showInstance, $after);
+        return $result;
+    }
 
-        foreach ($instances as $ts => $instance) {
-            $now = DateTime::createFromFormat(DEFAULT_TIMESTAMP_FORMAT, "now", new DateTimeZone("UTC"));
-            // Don't schedule deferred instances until we're at or past their deferral time
-            if (is_int($ts) || $now >= $ts) {
-                $after = array_key_exists($instance, $this->_lastScheduled) ? $this->_lastScheduled[$instance] : 0;
-                $this->_scheduleFallbackRotation($instance, $after);
-            }
-            // TODO: add instances to blacklist so we don't schedule the same Rotation multiple times?
+    /**
+     * If there are currently scheduled tracks in the given instance, removes their
+     * cumulative duration from the total Playlist time and adjusts start time
+     * accordingly.
+     */
+    protected function _accountForScheduledTracks() {
+        $future = new DateTime(null, new DateTimeZone("UTC"));
+        $now = new DateTime(null, new DateTimeZone("UTC"));
+        $future->add(new DateInterval("PT{$this->_timeToFill}S"));
+        $tracks = CcScheduleQuery::create()
+            ->filterByDbInstanceId($this->_showInstance)
+            ->filterByDbStarts($future->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::LESS_THAN)
+            ->filterByDbEnds($now->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::GREATER_THAN)
+            ->orderByDbEnds()
+            ->find();
+        foreach ($tracks as $track) {
+            $this->_lastScheduled = $track->getDbId();
+            $this->_timeToFill -= Application_Common_DateHelper::playlistTimeToSeconds($track->getDbClipLength());
         }
-
-        return $this;
+        // Don't repeat any existing tracks
+        $this->_history->setData(array_merge($this->_history->getData(), $tracks->getData()));
     }
 
     /**
      * Fill in any remaining time in the rotation.
      */
-    private function _build() {
+    protected function _build() {
         // Get a PropelObjectCollection of all suitable tracks so we only have to go to the database once
         $suitableTracks = $this->_getSuitableTracks($this->_timeToFill)->getData();
         while (!empty($suitableTracks) && $this->_timeToFill > 0) {
@@ -173,39 +147,21 @@ class Rotation {
     }
 
     /**
-     * Adds any currently scheduled tracks to the Rotation
-     *
-     * @param int $instance
-     */
-    private function _accountForScheduledTracks($instance) {
-        $seconds = $this->_timeToFill;
-        $future = new DateTime(null, new DateTimeZone("UTC"));
-        $now = new DateTime(null, new DateTimeZone("UTC"));
-        $future->add(new DateInterval("PT{$seconds}S"));
-        $tracks = CcScheduleQuery::create()
-            ->filterByDbInstanceId($instance)
-            ->filterByDbStarts($future->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::LESS_THAN)
-            ->filterByDbEnds($now->format(DEFAULT_TIMESTAMP_FORMAT), Criteria::GREATER_THAN)
-            ->find();
-        foreach ($tracks as $track) {
-            $this->_lastScheduled[$instance] = $track->getDbId();
-            $this->_timeToFill -= Application_Common_DateHelper::playlistTimeToSeconds($track->getDbClipLength());
-        }
-    }
-
-    /**
      *
      * @param int $timeToFill
      *
      * @return PropelObjectCollection
      */
-    private function _getSuitableTracks($timeToFill) {
+    protected function _getSuitableTracks($timeToFill) {
         $tracks = CcFilesQuery::create()
             ->filterByDbLength($timeToFill, Criteria::LESS_EQUAL)
             ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
             ->filterByDbLength('00:00:00', Criteria::GREATER_THAN);
+        // TODO: can we avoid both storing a hypothetically infinite library in memory and
+        //       running n queries by getting a bounded result set?
+        //       (SUM of individual track lengths < rotation length)
         foreach ($this->_filters as $filter) {
-            $tracks->filterBy($filter->column, $filter->value, $filter->comparsion);
+            $tracks->filterBy($filter->column, $filter->value, $filter->comparison);
         }
         // TODO: build and apply rotation heuristics (based on user input?)
         return $tracks->find();
@@ -218,7 +174,7 @@ class Rotation {
      *
      * @return CcFiles
      */
-    private function _pickSuitableTrack(&$suitableTracks, &$key) {
+    protected function _pickSuitableTrack(&$suitableTracks, &$key) {
         $track = null;
         while (!empty($suitableTracks)) {
             $key = array_rand($suitableTracks);
@@ -226,7 +182,6 @@ class Rotation {
             $trackLength = Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
             if ($trackLength > $this->_timeToFill) {
                 array_splice($suitableTracks, $key, 1);
-                // Unset so the last track in $suitableTracks won't get added if it's too long
                 $track = null;
             } else {
                 if (empty($this->_trackLengthMin) || $this->_trackLengthMin > $trackLength) {
@@ -245,9 +200,9 @@ class Rotation {
      *
      * @throws Exception
      */
-    private function _getCurrentShowInstance() {
+    protected function _getCurrentShowInstance() {
         $future = $now = new DateTime(null, new DateTimeZone("UTC"));
-        $timespan = self::$_HISTORY_LOOKUP_SECONDS;
+        $timespan = static::$_HISTORY_LOOKUP_SECONDS;
         $future->add(new DateInterval("PT{$timespan}S"));
         // TODO: default to the next show instance if no current instance exists?
         $shows = Application_Model_Show::getPrevCurrentNext($now, $future->format(DEFAULT_TIMESTAMP_FORMAT), 1);
@@ -258,7 +213,7 @@ class Rotation {
      *
      * @return array
      */
-    private function _getExcludeArray() {
+    protected function _getExcludeArray() {
         $keys = array();
         foreach ($this->_tracks as $t) {
             $keys[] = $t->getDbId();
@@ -270,8 +225,8 @@ class Rotation {
      *
      * @return PropelObjectCollection
      */
-    private function _getHistory() {
-        $pastTimestamp = gmdate(DEFAULT_TIMESTAMP_FORMAT, (microtime(true) - self::$_HISTORY_LOOKUP_SECONDS));
+    protected function _getHistory() {
+        $pastTimestamp = gmdate(DEFAULT_TIMESTAMP_FORMAT, (microtime(true) - static::$_HISTORY_LOOKUP_SECONDS));
         $history = CcPlayoutHistoryQuery::create()
             ->filterByDbEnds($pastTimestamp, Criteria::GREATER_EQUAL)
             ->find();
@@ -282,11 +237,12 @@ class Rotation {
     /**
      *
      * @param int $showInstance
-     * @param int $scheduleAfter
+     * @param int $scheduleAfter track to schedule the Rotation after,
+     *                           defaults to the beginning of the show
      *
-     * @throws Exception
+     * @return boolean
      */
-    private function _scheduleFallbackRotation($showInstance, $scheduleAfter) {
+    protected function _addToSchedule($showInstance, $scheduleAfter = 0) {
         if (!Zend_Session::isStarted()) Zend_Session::start();
         $scheduler = new Application_Model_Scheduler();
         // Ignore user permissions so the fallbacks can be set on non-user (pypo) requests
@@ -308,10 +264,10 @@ class Rotation {
 
         try {
             $scheduler->scheduleAfter($scheduledItems, $mediaItems);
+            return true;
         } catch (Exception $e) {
-            // This was dying silently on error, so log it and rethrow
             Logging::error($e);
-            throw $e;
+            return false;
         }
     }
 

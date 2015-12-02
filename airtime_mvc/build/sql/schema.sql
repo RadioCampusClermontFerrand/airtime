@@ -184,6 +184,7 @@ CREATE TABLE "cc_show_instances"
     "created" TIMESTAMP NOT NULL,
     "last_scheduled" TIMESTAMP,
     "modified_instance" BOOLEAN DEFAULT 'f' NOT NULL,
+    "rotation" INTEGER,
     PRIMARY KEY ("id")
 );
 
@@ -778,6 +779,19 @@ CREATE TABLE "podcast_episodes"
     PRIMARY KEY ("id")
 );
 
+-----------------------------------------------------------------------
+-- rotation
+-----------------------------------------------------------------------
+
+DROP TABLE IF EXISTS "rotation" CASCADE;
+
+CREATE TABLE "rotation"
+(
+    "id" serial NOT NULL,
+    "type" VARCHAR NOT NULL,
+    PRIMARY KEY ("id")
+);
+
 ALTER TABLE "cc_files" ADD CONSTRAINT "cc_files_owner_fkey"
     FOREIGN KEY ("owner_id")
     REFERENCES "cc_subjs" ("id");
@@ -813,6 +827,11 @@ ALTER TABLE "cc_show_instances" ADD CONSTRAINT "cc_original_show_instance_fkey"
 ALTER TABLE "cc_show_instances" ADD CONSTRAINT "cc_recorded_file_fkey"
     FOREIGN KEY ("file_id")
     REFERENCES "cc_files" ("id")
+    ON DELETE CASCADE;
+
+ALTER TABLE "cc_show_instances" ADD CONSTRAINT "rotation_fkey"
+    FOREIGN KEY ("rotation")
+    REFERENCES "rotation" ("id")
     ON DELETE CASCADE;
 
 ALTER TABLE "cc_show_days" ADD CONSTRAINT "cc_show_fkey"
