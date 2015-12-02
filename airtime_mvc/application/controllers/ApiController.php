@@ -152,6 +152,20 @@ class ApiController extends Zend_Controller_Action
                 // TODO: store the IP address for future use
                 $ts = strtotime($entry->timestamp);
                 if ($ts > Application_Model_Preference::getBandwidthLimitUpdateTimer()) {
+                    // Listener stats stuff
+                    if ($entry->session_duration > 10) {
+                        $listenerStat = new ListenerStats();
+                        $listenerStat->setDbBytes($entry->bytes)
+                            ->setDbDisconnectTimestamp($entry->timestamp)
+                            ->setDbGeoIp($entry->client_ip)
+                            ->setDbSessionDuration($entry->session_duration)
+                            ->setDbMount($entry->mount)
+                            ->setDbUserAgent($entry->user_agent)
+                            ->setDbReferrer($entry->referrer)
+                            ->save();
+                    }
+
+                    // Bandwidth limit stuff
                     $usageBytes += $entry->bytes;
                 }
             }
