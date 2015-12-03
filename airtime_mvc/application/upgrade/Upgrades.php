@@ -520,11 +520,12 @@ class AirtimeUpgrader2517 extends AirtimeUpgrader
 {
     protected function getSupportedSchemaVersions() {
         return array(
-            '2.5.16'
+            '2.5.16',
+            '2.5.17'
         );
     }
 
     public function getNewVersion() {
-        return '2.5.17';
+        return '2.5.18';
     }
 }
