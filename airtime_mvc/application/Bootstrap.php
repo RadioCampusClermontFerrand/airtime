@@ -41,6 +41,7 @@ require_once 'Locale.php';
 require_once "Enum.php";
 require_once "MediaType.php";
 require_once "HttpRequestType.php";
+require_once "HttpResponseType.php";
 /* Interfaces */
 require_once "OAuth2.php";
 require_once "OAuth2Controller.php";
@@ -48,7 +49,6 @@ require_once "Publish.php";
 
 /* SAAS-1260 - Rotation */
 require_once __DIR__."/services/RotationBuilder.php";
-require_once __DIR__."/services/SmartPlaylistBuilder.php";
 
 /* Factories */
 require_once __DIR__.'/services/CeleryServiceFactory.php';

@@ -30,6 +30,12 @@ $pages = array(
         'resource'   => 'schedule'
     ),
     array(
+        'label'      => "<i class='icon-refresh icon-white'></i>"._('Rotations'),
+        'module'     => 'default',
+        'controller' => 'render',
+        'action'     => 'rotation-settings-page'
+    ),
+    array(
         'label'      =>  "<i class='icon-wrench icon-white'></i>"._('Widgets'),
         'module'     => 'default',
         'controller' => 'embeddablewidgets',
@@ -81,7 +87,7 @@ $pages = array(
                 'module'     => 'default',
                 'controller' => 'user',
                 'action'     => 'add-user',
-                'resource'   =>    'user'
+                'resource'   => 'user'
             ),
             array(
                 'label'      => _('Streams'),

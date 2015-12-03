@@ -18,6 +18,9 @@ class RotationBuilder {
     /** @var CcFiles[] internal rotation tracks array */
     protected $_tracks = array();
 
+    /** @var int[] array of CcFiles ids to exclude */
+    protected $_blacklist = array();
+
     /** @var stdClass[] array of filters to narrow Rotation criteria */
     protected $_filters = array();
 
@@ -133,11 +136,10 @@ class RotationBuilder {
             ->orderByDbEnds()
             ->find();
         foreach ($tracks as $track) {
+            $this->_blacklist[] = $track->getDbFileId();
             $this->_lastScheduled = $track->getDbId();
             $this->_timeToFill -= Application_Common_DateHelper::playlistTimeToSeconds($track->getDbClipLength());
         }
-        // Don't repeat any existing tracks
-        $this->_history->setData(array_merge($this->_history->getData(), $tracks->getData()));
     }
 
     /**
@@ -215,7 +217,7 @@ class RotationBuilder {
      * @return array
      */
     protected function _getExcludeArray() {
-        $keys = array();
+        $keys = $this->_blacklist;
         foreach ($this->_tracks as $t) {
             $keys[] = $t->getDbId();
         }
