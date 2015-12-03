@@ -12,7 +12,35 @@ class Rest_ListenerStatsController extends Zend_Rest_Controller
 
     public function indexAction()
     {
-        Logging::info("index");
+        $totalListenerStatCount = ListenerStatsQuery::create()->count();
+
+        // Check if offset and limit were sent with request.
+        // Default limit to zero and offset to $totalFileCount
+        $offset = $this->_getParam('offset', 0);
+        $limit = $this->_getParam('limit', $totalListenerStatCount);
+
+        //Sorting parameters
+        $sortColumn = $this->_getParam('sort', ListenerStatsPeer::ID);
+        $sortDir = $this->_getParam('sort_dir', Criteria::ASC);
+
+        $stationPodcastId = Application_Model_Preference::getStationPodcastId();
+        $query = ListenerStatsQuery::create()
+            ->setLimit($limit)
+            ->setOffset($offset)
+            ->orderBy($sortColumn, $sortDir);
+
+        $queryResult = $query->find();
+
+        $listenerStatArray = array();
+        foreach ($queryResult as $listener)
+        {
+            array_push($listenerStatArray, $listener->toArray(BasePeer::TYPE_FIELDNAME));
+        }
+
+        $this->getResponse()
+            ->setHttpResponseCode(200)
+            ->setHeader('X-TOTAL-COUNT', $totalListenerStatCount)
+            ->appendBody(json_encode($listenerStatArray));
     }
 
     public function getAction()
