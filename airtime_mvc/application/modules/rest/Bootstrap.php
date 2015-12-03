@@ -14,7 +14,7 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
         assert($router->addRoute('rest', $restRoute));
 
         $listenerStatsGeolocation = new Zend_Controller_Router_Route(
-            'rest/listener-stats/geolocation',
+            'rest/listener-stats/geolocation/*',
             array(
                 'controller' => 'listener-stats',
                 'action' => 'geolocation',
