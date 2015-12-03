@@ -15,7 +15,7 @@ class Rest_ListenerStatsController extends Zend_Rest_Controller
         $totalListenerStatCount = ListenerStatsQuery::create()->count();
 
         // Check if offset and limit were sent with request.
-        // Default limit to zero and offset to $totalFileCount
+        // Default limit to zero and offset to $totalListenerStatCount
         $offset = $this->_getParam('offset', 0);
         $limit = $this->_getParam('limit', $totalListenerStatCount);
 
