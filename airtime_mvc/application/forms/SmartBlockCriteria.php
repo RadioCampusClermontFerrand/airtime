@@ -480,37 +480,6 @@ class Application_Form_SmartBlockCriteria extends Zend_Form_SubForm
     {
         $isValid = true;
         $data = $this->preValidation($params);
-        $criteria2PeerMap = array(
-            0 => "Select criteria",
-            "album_title" => "DbAlbumTitle",
-            "artist_name" => "DbArtistName",
-            "bit_rate" => "DbBitRate",
-            "bpm" => "DbBpm",
-            "composer" => "DbComposer",
-            "conductor" => "DbConductor",
-            "copyright" => "DbCopyright",
-            "cuein" => "DbCuein",
-            "cueout" => "DbCueout",
-            "description" => "DbDescription",
-            "encoded_by" => "DbEncodedBy",
-            "utime" => "DbUtime",
-            "mtime" => "DbMtime",
-            "lptime" => "DbLPtime",
-            "genre" => "DbGenre",
-            "info_url" => "DbInfoUrl",
-            "isrc_number" => "DbIsrcNumber",
-            "label" => "DbLabel",
-            "language" => "DbLanguage",
-            "length" => "DbLength",
-            "mime" => "DbMime",
-            "mood" => "DbMood",
-            "owner_id" => "DbOwnerId",
-            "replay_gain" => "DbReplayGain",
-            "sample_rate" => "DbSampleRate",
-            "track_title" => "DbTrackTitle",
-            "track_number" => "DbTrackNumber",
-            "year" => "DbYear"
-        );
 
         // things we need to check
         // 1. limit value shouldn't be empty and has upperbound of 24 hrs
@@ -558,7 +527,7 @@ class Application_Form_SmartBlockCriteria extends Zend_Form_SubForm
                         $element->addError(_("You must select Criteria and Modifier"));
                         $isValid = false;
                     } else {
-                        $column = CcFilesPeer::getTableMap()->getColumnByPhpName($criteria2PeerMap[$d['sp_criteria_field']]);
+                        $column = CcFilesPeer::getTableMap()->getColumn($d['sp_criteria_field']);
                         // validation on type of column
                         if (in_array($d['sp_criteria_field'], array('length', 'cuein', 'cueout'))) {
                             if (!preg_match("/^(\d{2}):(\d{2}):(\d{2})/", $d['sp_criteria_value'])) {

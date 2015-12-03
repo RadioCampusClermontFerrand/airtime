@@ -44,49 +44,6 @@ class Application_Model_Block implements Application_Model_LibraryEditable
             "dcterms:extent" => "Length"
     );
 
-    private static $modifier2CriteriaMap = array(
-            "contains"         => Criteria::ILIKE,
-            "does not contain" => Criteria::NOT_ILIKE,
-            "is"               => Criteria::EQUAL,
-            "is not"           => Criteria::NOT_EQUAL,
-            "starts with"      => Criteria::ILIKE,
-            "ends with"        => Criteria::ILIKE,
-            "is greater than"  => Criteria::GREATER_THAN,
-            "is less than"     => Criteria::LESS_THAN,
-            "is in the range"  => Criteria::CUSTOM);
-
-    private static $criteria2PeerMap = array(
-            0              => "Select criteria",
-            "album_title"  => "DbAlbumTitle",
-            "artist_name"  => "DbArtistName",
-            "bit_rate"     => "DbBitRate",
-            "bpm"          => "DbBpm",
-            "composer"     => "DbComposer",
-            "conductor"    => "DbConductor",
-            "copyright"    => "DbCopyright",
-            "cuein"        => "DbCuein",
-            "cueout"       => "DbCueout",
-            "description"  => "DbDescription",
-            "encoded_by"   => "DbEncodedBy",
-            "utime"        => "DbUtime",
-            "mtime"        => "DbMtime",
-            "lptime"       => "DbLPtime",
-            "genre"        => "DbGenre",
-            "info_url"     => "DbInfoUrl",
-            "isrc_number"  => "DbIsrcNumber",
-            "label"        => "DbLabel",
-            "language"     => "DbLanguage",
-            "length"       => "DbLength",
-            "mime"         => "DbMime",
-            "mood"         => "DbMood",
-            "owner_id"     => "DbOwnerId",
-            "replay_gain"  => "DbReplayGain",
-            "sample_rate"  => "DbSampleRate",
-            "track_title"  => "DbTrackTitle",
-            "track_number" => "DbTrackNumber",
-            "year"         => "DbYear"
-    );
-
     public function __construct($id=null, $con=null)
     {
         if (isset($id)) {
@@ -1443,7 +1400,7 @@ SQL;
                     $spCriteria = $criteria['criteria'];
                     $spCriteriaModifier = $criteria['modifier'];
 
-                    $column = CcFilesPeer::getTableMap()->getColumnByPhpName(self::$criteria2PeerMap[$spCriteria]);
+                    $column = CcFilesPeer::getTableMap()->getColumn($spCriteria);
 
                     //data should already be in UTC, do we have to do anything special here anymore?
                     if ($column->getType() == PropelColumnTypes::TIMESTAMP) {
@@ -1474,7 +1431,7 @@ SQL;
                         /* Propel does not escape special characters properly when using LIKE/ILIKE
                          * We have to add extra slashes in these cases
                          */
-                        $tempModifier = trim(self::$modifier2CriteriaMap[$spCriteriaModifier]);
+                        $tempModifier = trim(CriteriaBuilder::$modifier2CriteriaMap[$spCriteriaModifier]);
                         if ($tempModifier == 'ILIKE') {
                             $spCriteriaValue = addslashes($criteria['value']);
                             // addslashes() does not esapce '%' so we have to do it manually
@@ -1496,7 +1453,7 @@ SQL;
                         $spCriteriaValue = "$spCriteria >= '$spCriteriaValue' AND $spCriteria <= '$spCriteriaExtra'";
                     }
 
-                    $spCriteriaModifier = self::$modifier2CriteriaMap[$spCriteriaModifier];
+                    $spCriteriaModifier = CriteriaBuilder::$modifier2CriteriaMap[$spCriteriaModifier];
 
                     try {
                         if ($spCriteria == "owner_id") {

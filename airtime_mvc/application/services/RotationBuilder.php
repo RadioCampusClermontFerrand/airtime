@@ -11,7 +11,7 @@ class RotationBuilder {
     /**
      * @var PropelObjectCollection stores played track history from the past $_HISTORY_LOOKUP_SECONDS seconds.
      *                             Tracks in history are ignored when finding new tracks for rotation
-     * @see Rotation::$_HISTORY_LOOKUP_SECONDS
+     * @see RotationBuilder::$_HISTORY_LOOKUP_SECONDS
      */
     protected $_history;
 

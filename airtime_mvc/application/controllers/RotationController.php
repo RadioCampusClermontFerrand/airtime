@@ -29,6 +29,9 @@ class RotationController extends Zend_Controller_Action {
     /**
      * Render the Rotation settings page
      */
-    public function settingsAction() { }
+    public function settingsAction() {
+        $this->view->criteria = CriteriaBuilder::$modifier2CriteriaMap;
+        $this->view->fields = CriteriaBuilder::getObjectFields(new Rotation);
+    }
 
 }
