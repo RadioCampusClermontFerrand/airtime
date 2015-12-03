@@ -17,9 +17,4 @@ class RenderController extends Zend_Controller_Action {
         $this->_helper->json->sendJson(array("html"=>$this->view->render($path)));
     }
 
-    public function rotationSettingsPageAction() {
-        $path = 'rotations/settings.phtml';
-        $this->_helper->json->sendJson(array("html"=>$this->view->render($path)));
-    }
-
 }

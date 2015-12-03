@@ -184,7 +184,7 @@
     <foreign-key foreignTable="cc_files" name="cc_recorded_file_fkey" onDelete="CASCADE">
       <reference local="file_id" foreign="id"/>
     </foreign-key>
-    <foreign-key foreignTable="rotation" name="rotation_fkey" onDelete="CASCADE">
+    <foreign-key foreignTable="rotation" name="cc_show_instances_rotation_fkey" onDelete="SET NULL">
       <reference local="rotation" foreign="id"/>
     </foreign-key>
   </table>
@@ -630,6 +630,12 @@
 
   <table name="rotation" phpName="Rotation">
     <column name="id" phpName="DbId" primaryKey="true" type="INTEGER" autoIncrement="true" required="true" />
-    <column name="type" phpName="DbType" type="VARCHAR" required="true" />
+    <column name="name" phpName="DbName" type="VARCHAR" required="true" />
+    <column name="minimum_track_length" phpName="DbMinimumTrackLength" type="INTEGER" default="60" required="false" />
+    <column name="maximum_track_length" phpName="DbMaximumTrackLength" type="INTEGER" default="600" required="false" />
+    <column name="playlist" phpName="DbPlaylist" type="INTEGER" required="false" />
+    <foreign-key foreignTable="cc_playlist" name="rotation_cc_playlist_fkey" onDelete="SET NULL">
+      <reference local="playlist" foreign="id" />
+    </foreign-key>
   </table>
 </database>

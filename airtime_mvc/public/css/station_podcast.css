@@ -5,6 +5,10 @@
 }
 
 #station_podcast .angular_wrapper {
+    -webkit-flex-flow: row;
+    -moz-flex-flow: row;
+    -ms-flex-flow: row;
+    -o-flex-flow: row;
     flex-flow: row;
     overflow: hidden;
 }

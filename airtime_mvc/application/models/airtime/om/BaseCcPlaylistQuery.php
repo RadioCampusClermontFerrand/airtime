@@ -34,6 +34,10 @@
  * @method CcPlaylistQuery rightJoinCcPlaylistcontents($relationAlias = null) Adds a RIGHT JOIN clause to the query using the CcPlaylistcontents relation
  * @method CcPlaylistQuery innerJoinCcPlaylistcontents($relationAlias = null) Adds a INNER JOIN clause to the query using the CcPlaylistcontents relation
  *
+ * @method CcPlaylistQuery leftJoinRotation($relationAlias = null) Adds a LEFT JOIN clause to the query using the Rotation relation
+ * @method CcPlaylistQuery rightJoinRotation($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Rotation relation
+ * @method CcPlaylistQuery innerJoinRotation($relationAlias = null) Adds a INNER JOIN clause to the query using the Rotation relation
+ *
  * @method CcPlaylist findOne(PropelPDO $con = null) Return the first CcPlaylist matching the query
  * @method CcPlaylist findOneOrCreate(PropelPDO $con = null) Return the first CcPlaylist matching the query, or a new CcPlaylist object populated from the query conditions when no match is found
  *
@@ -654,6 +658,80 @@ abstract class BaseCcPlaylistQuery extends ModelCriteria
         return $this
             ->joinCcPlaylistcontents($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'CcPlaylistcontents', 'CcPlaylistcontentsQuery');
+    }
+
+    /**
+     * Filter the query by a related Rotation object
+     *
+     * @param   Rotation|PropelObjectCollection $rotation  the related object to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return                 CcPlaylistQuery The current query, for fluid interface
+     * @throws PropelException - if the provided filter is invalid.
+     */
+    public function filterByRotation($rotation, $comparison = null)
+    {
+        if ($rotation instanceof Rotation) {
+            return $this
+                ->addUsingAlias(CcPlaylistPeer::ID, $rotation->getDbPlaylist(), $comparison);
+        } elseif ($rotation instanceof PropelObjectCollection) {
+            return $this
+                ->useRotationQuery()
+                ->filterByPrimaryKeys($rotation->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByRotation() only accepts arguments of type Rotation or PropelCollection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the Rotation relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return CcPlaylistQuery The current query, for fluid interface
+     */
+    public function joinRotation($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('Rotation');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'Rotation');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the Rotation relation Rotation object
+     *
+     * @see       useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return   RotationQuery A secondary query class using the current class as primary query
+     */
+    public function useRotationQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+    {
+        return $this
+            ->joinRotation($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'Rotation', 'RotationQuery');
     }
 
     /**

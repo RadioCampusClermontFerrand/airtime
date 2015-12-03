@@ -36,10 +36,35 @@ abstract class BaseRotation extends BaseObject implements Persistent
     protected $id;
 
     /**
-     * The value for the type field.
+     * The value for the name field.
      * @var        string
      */
-    protected $type;
+    protected $name;
+
+    /**
+     * The value for the minimum_track_length field.
+     * Note: this column has a database default value of: 60
+     * @var        int
+     */
+    protected $minimum_track_length;
+
+    /**
+     * The value for the maximum_track_length field.
+     * Note: this column has a database default value of: 600
+     * @var        int
+     */
+    protected $maximum_track_length;
+
+    /**
+     * The value for the playlist field.
+     * @var        int
+     */
+    protected $playlist;
+
+    /**
+     * @var        CcPlaylist
+     */
+    protected $aCcPlaylist;
 
     /**
      * @var        PropelObjectCollection|CcShowInstances[] Collection to store aggregation of CcShowInstances objects.
@@ -74,6 +99,28 @@ abstract class BaseRotation extends BaseObject implements Persistent
     protected $ccShowInstancessScheduledForDeletion = null;
 
     /**
+     * Applies default values to this object.
+     * This method should be called from the object's constructor (or
+     * equivalent initialization method).
+     * @see        __construct()
+     */
+    public function applyDefaultValues()
+    {
+        $this->minimum_track_length = 60;
+        $this->maximum_track_length = 600;
+    }
+
+    /**
+     * Initializes internal state of BaseRotation object.
+     * @see        applyDefaults()
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->applyDefaultValues();
+    }
+
+    /**
      * Get the [id] column value.
      *
      * @return int
@@ -85,14 +132,47 @@ abstract class BaseRotation extends BaseObject implements Persistent
     }
 
     /**
-     * Get the [type] column value.
+     * Get the [name] column value.
      *
      * @return string
      */
-    public function getDbType()
+    public function getDbName()
     {
 
-        return $this->type;
+        return $this->name;
+    }
+
+    /**
+     * Get the [minimum_track_length] column value.
+     *
+     * @return int
+     */
+    public function getDbMinimumTrackLength()
+    {
+
+        return $this->minimum_track_length;
+    }
+
+    /**
+     * Get the [maximum_track_length] column value.
+     *
+     * @return int
+     */
+    public function getDbMaximumTrackLength()
+    {
+
+        return $this->maximum_track_length;
+    }
+
+    /**
+     * Get the [playlist] column value.
+     *
+     * @return int
+     */
+    public function getDbPlaylist()
+    {
+
+        return $this->playlist;
     }
 
     /**
@@ -117,25 +197,92 @@ abstract class BaseRotation extends BaseObject implements Persistent
     } // setDbId()
 
     /**
-     * Set the value of [type] column.
+     * Set the value of [name] column.
      *
      * @param  string $v new value
      * @return Rotation The current object (for fluent API support)
      */
-    public function setDbType($v)
+    public function setDbName($v)
     {
         if ($v !== null && is_numeric($v)) {
             $v = (string) $v;
         }
 
-        if ($this->type !== $v) {
-            $this->type = $v;
-            $this->modifiedColumns[] = RotationPeer::TYPE;
+        if ($this->name !== $v) {
+            $this->name = $v;
+            $this->modifiedColumns[] = RotationPeer::NAME;
         }
 
 
         return $this;
-    } // setDbType()
+    } // setDbName()
+
+    /**
+     * Set the value of [minimum_track_length] column.
+     *
+     * @param  int $v new value
+     * @return Rotation The current object (for fluent API support)
+     */
+    public function setDbMinimumTrackLength($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->minimum_track_length !== $v) {
+            $this->minimum_track_length = $v;
+            $this->modifiedColumns[] = RotationPeer::MINIMUM_TRACK_LENGTH;
+        }
+
+
+        return $this;
+    } // setDbMinimumTrackLength()
+
+    /**
+     * Set the value of [maximum_track_length] column.
+     *
+     * @param  int $v new value
+     * @return Rotation The current object (for fluent API support)
+     */
+    public function setDbMaximumTrackLength($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->maximum_track_length !== $v) {
+            $this->maximum_track_length = $v;
+            $this->modifiedColumns[] = RotationPeer::MAXIMUM_TRACK_LENGTH;
+        }
+
+
+        return $this;
+    } // setDbMaximumTrackLength()
+
+    /**
+     * Set the value of [playlist] column.
+     *
+     * @param  int $v new value
+     * @return Rotation The current object (for fluent API support)
+     */
+    public function setDbPlaylist($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (int) $v;
+        }
+
+        if ($this->playlist !== $v) {
+            $this->playlist = $v;
+            $this->modifiedColumns[] = RotationPeer::PLAYLIST;
+        }
+
+        if ($this->aCcPlaylist !== null && $this->aCcPlaylist->getDbId() !== $v) {
+            $this->aCcPlaylist = null;
+        }
+
+
+        return $this;
+    } // setDbPlaylist()
 
     /**
      * Indicates whether the columns in this object are only set to default values.
@@ -147,6 +294,14 @@ abstract class BaseRotation extends BaseObject implements Persistent
      */
     public function hasOnlyDefaultValues()
     {
+            if ($this->minimum_track_length !== 60) {
+                return false;
+            }
+
+            if ($this->maximum_track_length !== 600) {
+                return false;
+            }
+
         // otherwise, everything was equal, so return true
         return true;
     } // hasOnlyDefaultValues()
@@ -170,7 +325,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
         try {
 
             $this->id = ($row[$startcol + 0] !== null) ? (int) $row[$startcol + 0] : null;
-            $this->type = ($row[$startcol + 1] !== null) ? (string) $row[$startcol + 1] : null;
+            $this->name = ($row[$startcol + 1] !== null) ? (string) $row[$startcol + 1] : null;
+            $this->minimum_track_length = ($row[$startcol + 2] !== null) ? (int) $row[$startcol + 2] : null;
+            $this->maximum_track_length = ($row[$startcol + 3] !== null) ? (int) $row[$startcol + 3] : null;
+            $this->playlist = ($row[$startcol + 4] !== null) ? (int) $row[$startcol + 4] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -180,7 +338,7 @@ abstract class BaseRotation extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 2; // 2 = RotationPeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 5; // 5 = RotationPeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating Rotation object", $e);
@@ -203,6 +361,9 @@ abstract class BaseRotation extends BaseObject implements Persistent
     public function ensureConsistency()
     {
 
+        if ($this->aCcPlaylist !== null && $this->playlist !== $this->aCcPlaylist->getDbId()) {
+            $this->aCcPlaylist = null;
+        }
     } // ensureConsistency
 
     /**
@@ -242,6 +403,7 @@ abstract class BaseRotation extends BaseObject implements Persistent
 
         if ($deep) {  // also de-associate any related objects?
 
+            $this->aCcPlaylist = null;
             $this->collCcShowInstancess = null;
 
         } // if (deep)
@@ -357,6 +519,18 @@ abstract class BaseRotation extends BaseObject implements Persistent
         if (!$this->alreadyInSave) {
             $this->alreadyInSave = true;
 
+            // We call the save method on the following object(s) if they
+            // were passed to this object by their corresponding set
+            // method.  This object relates to these object(s) by a
+            // foreign key reference.
+
+            if ($this->aCcPlaylist !== null) {
+                if ($this->aCcPlaylist->isModified() || $this->aCcPlaylist->isNew()) {
+                    $affectedRows += $this->aCcPlaylist->save($con);
+                }
+                $this->setCcPlaylist($this->aCcPlaylist);
+            }
+
             if ($this->isNew() || $this->isModified()) {
                 // persist changes
                 if ($this->isNew()) {
@@ -370,9 +544,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
 
             if ($this->ccShowInstancessScheduledForDeletion !== null) {
                 if (!$this->ccShowInstancessScheduledForDeletion->isEmpty()) {
-                    CcShowInstancesQuery::create()
-                        ->filterByPrimaryKeys($this->ccShowInstancessScheduledForDeletion->getPrimaryKeys(false))
-                        ->delete($con);
+                    foreach ($this->ccShowInstancessScheduledForDeletion as $ccShowInstances) {
+                        // need to save related object because we set the relation to null
+                        $ccShowInstances->save($con);
+                    }
                     $this->ccShowInstancessScheduledForDeletion = null;
                 }
             }
@@ -424,8 +599,17 @@ abstract class BaseRotation extends BaseObject implements Persistent
         if ($this->isColumnModified(RotationPeer::ID)) {
             $modifiedColumns[':p' . $index++]  = '"id"';
         }
-        if ($this->isColumnModified(RotationPeer::TYPE)) {
-            $modifiedColumns[':p' . $index++]  = '"type"';
+        if ($this->isColumnModified(RotationPeer::NAME)) {
+            $modifiedColumns[':p' . $index++]  = '"name"';
+        }
+        if ($this->isColumnModified(RotationPeer::MINIMUM_TRACK_LENGTH)) {
+            $modifiedColumns[':p' . $index++]  = '"minimum_track_length"';
+        }
+        if ($this->isColumnModified(RotationPeer::MAXIMUM_TRACK_LENGTH)) {
+            $modifiedColumns[':p' . $index++]  = '"maximum_track_length"';
+        }
+        if ($this->isColumnModified(RotationPeer::PLAYLIST)) {
+            $modifiedColumns[':p' . $index++]  = '"playlist"';
         }
 
         $sql = sprintf(
@@ -441,8 +625,17 @@ abstract class BaseRotation extends BaseObject implements Persistent
                     case '"id"':
                         $stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
                         break;
-                    case '"type"':
-                        $stmt->bindValue($identifier, $this->type, PDO::PARAM_STR);
+                    case '"name"':
+                        $stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
+                        break;
+                    case '"minimum_track_length"':
+                        $stmt->bindValue($identifier, $this->minimum_track_length, PDO::PARAM_INT);
+                        break;
+                    case '"maximum_track_length"':
+                        $stmt->bindValue($identifier, $this->maximum_track_length, PDO::PARAM_INT);
+                        break;
+                    case '"playlist"':
+                        $stmt->bindValue($identifier, $this->playlist, PDO::PARAM_INT);
                         break;
                 }
             }
@@ -531,6 +724,18 @@ abstract class BaseRotation extends BaseObject implements Persistent
             $failureMap = array();
 
 
+            // We call the validate method on the following object(s) if they
+            // were passed to this object by their corresponding set
+            // method.  This object relates to these object(s) by a
+            // foreign key reference.
+
+            if ($this->aCcPlaylist !== null) {
+                if (!$this->aCcPlaylist->validate($columns)) {
+                    $failureMap = array_merge($failureMap, $this->aCcPlaylist->getValidationFailures());
+                }
+            }
+
+
             if (($retval = RotationPeer::doValidate($this, $columns)) !== true) {
                 $failureMap = array_merge($failureMap, $retval);
             }
@@ -583,7 +788,16 @@ abstract class BaseRotation extends BaseObject implements Persistent
                 return $this->getDbId();
                 break;
             case 1:
-                return $this->getDbType();
+                return $this->getDbName();
+                break;
+            case 2:
+                return $this->getDbMinimumTrackLength();
+                break;
+            case 3:
+                return $this->getDbMaximumTrackLength();
+                break;
+            case 4:
+                return $this->getDbPlaylist();
                 break;
             default:
                 return null;
@@ -615,7 +829,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
         $keys = RotationPeer::getFieldNames($keyType);
         $result = array(
             $keys[0] => $this->getDbId(),
-            $keys[1] => $this->getDbType(),
+            $keys[1] => $this->getDbName(),
+            $keys[2] => $this->getDbMinimumTrackLength(),
+            $keys[3] => $this->getDbMaximumTrackLength(),
+            $keys[4] => $this->getDbPlaylist(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -623,6 +840,9 @@ abstract class BaseRotation extends BaseObject implements Persistent
         }
 
         if ($includeForeignObjects) {
+            if (null !== $this->aCcPlaylist) {
+                $result['CcPlaylist'] = $this->aCcPlaylist->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            }
             if (null !== $this->collCcShowInstancess) {
                 $result['CcShowInstancess'] = $this->collCcShowInstancess->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
@@ -664,7 +884,16 @@ abstract class BaseRotation extends BaseObject implements Persistent
                 $this->setDbId($value);
                 break;
             case 1:
-                $this->setDbType($value);
+                $this->setDbName($value);
+                break;
+            case 2:
+                $this->setDbMinimumTrackLength($value);
+                break;
+            case 3:
+                $this->setDbMaximumTrackLength($value);
+                break;
+            case 4:
+                $this->setDbPlaylist($value);
                 break;
         } // switch()
     }
@@ -691,7 +920,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
         $keys = RotationPeer::getFieldNames($keyType);
 
         if (array_key_exists($keys[0], $arr)) $this->setDbId($arr[$keys[0]]);
-        if (array_key_exists($keys[1], $arr)) $this->setDbType($arr[$keys[1]]);
+        if (array_key_exists($keys[1], $arr)) $this->setDbName($arr[$keys[1]]);
+        if (array_key_exists($keys[2], $arr)) $this->setDbMinimumTrackLength($arr[$keys[2]]);
+        if (array_key_exists($keys[3], $arr)) $this->setDbMaximumTrackLength($arr[$keys[3]]);
+        if (array_key_exists($keys[4], $arr)) $this->setDbPlaylist($arr[$keys[4]]);
     }
 
     /**
@@ -704,7 +936,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
         $criteria = new Criteria(RotationPeer::DATABASE_NAME);
 
         if ($this->isColumnModified(RotationPeer::ID)) $criteria->add(RotationPeer::ID, $this->id);
-        if ($this->isColumnModified(RotationPeer::TYPE)) $criteria->add(RotationPeer::TYPE, $this->type);
+        if ($this->isColumnModified(RotationPeer::NAME)) $criteria->add(RotationPeer::NAME, $this->name);
+        if ($this->isColumnModified(RotationPeer::MINIMUM_TRACK_LENGTH)) $criteria->add(RotationPeer::MINIMUM_TRACK_LENGTH, $this->minimum_track_length);
+        if ($this->isColumnModified(RotationPeer::MAXIMUM_TRACK_LENGTH)) $criteria->add(RotationPeer::MAXIMUM_TRACK_LENGTH, $this->maximum_track_length);
+        if ($this->isColumnModified(RotationPeer::PLAYLIST)) $criteria->add(RotationPeer::PLAYLIST, $this->playlist);
 
         return $criteria;
     }
@@ -768,7 +1003,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
      */
     public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
     {
-        $copyObj->setDbType($this->getDbType());
+        $copyObj->setDbName($this->getDbName());
+        $copyObj->setDbMinimumTrackLength($this->getDbMinimumTrackLength());
+        $copyObj->setDbMaximumTrackLength($this->getDbMaximumTrackLength());
+        $copyObj->setDbPlaylist($this->getDbPlaylist());
 
         if ($deepCopy && !$this->startCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
@@ -831,6 +1069,58 @@ abstract class BaseRotation extends BaseObject implements Persistent
         }
 
         return self::$peer;
+    }
+
+    /**
+     * Declares an association between this object and a CcPlaylist object.
+     *
+     * @param                  CcPlaylist $v
+     * @return Rotation The current object (for fluent API support)
+     * @throws PropelException
+     */
+    public function setCcPlaylist(CcPlaylist $v = null)
+    {
+        if ($v === null) {
+            $this->setDbPlaylist(NULL);
+        } else {
+            $this->setDbPlaylist($v->getDbId());
+        }
+
+        $this->aCcPlaylist = $v;
+
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the CcPlaylist object, it will not be re-added.
+        if ($v !== null) {
+            $v->addRotation($this);
+        }
+
+
+        return $this;
+    }
+
+
+    /**
+     * Get the associated CcPlaylist object
+     *
+     * @param PropelPDO $con Optional Connection object.
+     * @param $doQuery Executes a query to get the object if required
+     * @return CcPlaylist The associated CcPlaylist object.
+     * @throws PropelException
+     */
+    public function getCcPlaylist(PropelPDO $con = null, $doQuery = true)
+    {
+        if ($this->aCcPlaylist === null && ($this->playlist !== null) && $doQuery) {
+            $this->aCcPlaylist = CcPlaylistQuery::create()->findPk($this->playlist, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aCcPlaylist->addRotations($this);
+             */
+        }
+
+        return $this->aCcPlaylist;
     }
 
 
@@ -1155,11 +1445,15 @@ abstract class BaseRotation extends BaseObject implements Persistent
     public function clear()
     {
         $this->id = null;
-        $this->type = null;
+        $this->name = null;
+        $this->minimum_track_length = null;
+        $this->maximum_track_length = null;
+        $this->playlist = null;
         $this->alreadyInSave = false;
         $this->alreadyInValidation = false;
         $this->alreadyInClearAllReferencesDeep = false;
         $this->clearAllReferences();
+        $this->applyDefaultValues();
         $this->resetModified();
         $this->setNew(true);
         $this->setDeleted(false);
@@ -1183,6 +1477,9 @@ abstract class BaseRotation extends BaseObject implements Persistent
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->aCcPlaylist instanceof Persistent) {
+              $this->aCcPlaylist->clearAllReferences($deep);
+            }
 
             $this->alreadyInClearAllReferencesDeep = false;
         } // if ($deep)
@@ -1191,6 +1488,7 @@ abstract class BaseRotation extends BaseObject implements Persistent
             $this->collCcShowInstancess->clearIterator();
         }
         $this->collCcShowInstancess = null;
+        $this->aCcPlaylist = null;
     }
 
     /**

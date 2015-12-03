@@ -26,11 +26,10 @@ class Rest_RotationController extends Zend_Rest_Controller {
         $offset = $this->_getParam('offset', 0);
         $limit = $this->_getParam('limit', 0);
 
-        $sortColumn = $this->_getParam('sort', PodcastPeer::ID);
+        $sortColumn = $this->_getParam('sort', RotationPeer::ID);
         $sortDir = $this->_getParam('sort_dir', Criteria::ASC);
 
         $query = RotationQuery::create();
-            // Don't return the Station podcast - we fetch it separately
         if ($limit > 0) { $query->setLimit($limit); }
         $query->setOffset($offset)
             ->orderBy($sortColumn, $sortDir);

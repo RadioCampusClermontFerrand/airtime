@@ -64,7 +64,7 @@ class CcShowInstancesTableMap extends TableMap
         $this->addRelation('CcShow', 'CcShow', RelationMap::MANY_TO_ONE, array('show_id' => 'id', ), 'CASCADE', null);
         $this->addRelation('CcShowInstancesRelatedByDbOriginalShow', 'CcShowInstances', RelationMap::MANY_TO_ONE, array('instance_id' => 'id', ), 'CASCADE', null);
         $this->addRelation('CcFiles', 'CcFiles', RelationMap::MANY_TO_ONE, array('file_id' => 'id', ), 'CASCADE', null);
-        $this->addRelation('Rotation', 'Rotation', RelationMap::MANY_TO_ONE, array('rotation' => 'id', ), 'CASCADE', null);
+        $this->addRelation('Rotation', 'Rotation', RelationMap::MANY_TO_ONE, array('rotation' => 'id', ), 'SET NULL', null);
         $this->addRelation('CcShowInstancesRelatedByDbId', 'CcShowInstances', RelationMap::ONE_TO_MANY, array('id' => 'instance_id', ), 'CASCADE', null, 'CcShowInstancessRelatedByDbId');
         $this->addRelation('CcSchedule', 'CcSchedule', RelationMap::ONE_TO_MANY, array('id' => 'instance_id', ), 'CASCADE', null, 'CcSchedules');
         $this->addRelation('CcPlayoutHistory', 'CcPlayoutHistory', RelationMap::ONE_TO_MANY, array('id' => 'instance_id', ), 'SET NULL', null, 'CcPlayoutHistorys');

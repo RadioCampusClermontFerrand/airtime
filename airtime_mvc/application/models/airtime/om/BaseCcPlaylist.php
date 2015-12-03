@@ -85,6 +85,12 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
     protected $collCcPlaylistcontentssPartial;
 
     /**
+     * @var        PropelObjectCollection|Rotation[] Collection to store aggregation of Rotation objects.
+     */
+    protected $collRotations;
+    protected $collRotationsPartial;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
@@ -109,6 +115,12 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
      * @var		PropelObjectCollection
      */
     protected $ccPlaylistcontentssScheduledForDeletion = null;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var		PropelObjectCollection
+     */
+    protected $rotationsScheduledForDeletion = null;
 
     /**
      * Applies default values to this object.
@@ -536,6 +548,8 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
             $this->aCcSubjs = null;
             $this->collCcPlaylistcontentss = null;
 
+            $this->collRotations = null;
+
         } // if (deep)
     }
 
@@ -691,6 +705,24 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
 
             if ($this->collCcPlaylistcontentss !== null) {
                 foreach ($this->collCcPlaylistcontentss as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
+            if ($this->rotationsScheduledForDeletion !== null) {
+                if (!$this->rotationsScheduledForDeletion->isEmpty()) {
+                    foreach ($this->rotationsScheduledForDeletion as $rotation) {
+                        // need to save related object because we set the relation to null
+                        $rotation->save($con);
+                    }
+                    $this->rotationsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collRotations !== null) {
+                foreach ($this->collRotations as $referrerFK) {
                     if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
                         $affectedRows += $referrerFK->save($con);
                     }
@@ -898,6 +930,14 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
                     }
                 }
 
+                if ($this->collRotations !== null) {
+                    foreach ($this->collRotations as $referrerFK) {
+                        if (!$referrerFK->validate($columns)) {
+                            $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
+                        }
+                    }
+                }
+
 
             $this->alreadyInValidation = false;
         }
@@ -1002,6 +1042,9 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
             }
             if (null !== $this->collCcPlaylistcontentss) {
                 $result['CcPlaylistcontentss'] = $this->collCcPlaylistcontentss->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collRotations) {
+                $result['Rotations'] = $this->collRotations->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
         }
 
@@ -1190,6 +1233,12 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
                 }
             }
 
+            foreach ($this->getRotations() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addRotation($relObj->copy($deepCopy));
+                }
+            }
+
             //unflag object copy
             $this->startCopy = false;
         } // if ($deepCopy)
@@ -1305,6 +1354,9 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
     {
         if ('CcPlaylistcontents' == $relationName) {
             $this->initCcPlaylistcontentss();
+        }
+        if ('Rotation' == $relationName) {
+            $this->initRotations();
         }
     }
 
@@ -1584,6 +1636,231 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
     }
 
     /**
+     * Clears out the collRotations collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return CcPlaylist The current object (for fluent API support)
+     * @see        addRotations()
+     */
+    public function clearRotations()
+    {
+        $this->collRotations = null; // important to set this to null since that means it is uninitialized
+        $this->collRotationsPartial = null;
+
+        return $this;
+    }
+
+    /**
+     * reset is the collRotations collection loaded partially
+     *
+     * @return void
+     */
+    public function resetPartialRotations($v = true)
+    {
+        $this->collRotationsPartial = $v;
+    }
+
+    /**
+     * Initializes the collRotations collection.
+     *
+     * By default this just sets the collRotations collection to an empty array (like clearcollRotations());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initRotations($overrideExisting = true)
+    {
+        if (null !== $this->collRotations && !$overrideExisting) {
+            return;
+        }
+        $this->collRotations = new PropelObjectCollection();
+        $this->collRotations->setModel('Rotation');
+    }
+
+    /**
+     * Gets an array of Rotation objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this CcPlaylist is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param PropelPDO $con optional connection object
+     * @return PropelObjectCollection|Rotation[] List of Rotation objects
+     * @throws PropelException
+     */
+    public function getRotations($criteria = null, PropelPDO $con = null)
+    {
+        $partial = $this->collRotationsPartial && !$this->isNew();
+        if (null === $this->collRotations || null !== $criteria  || $partial) {
+            if ($this->isNew() && null === $this->collRotations) {
+                // return empty collection
+                $this->initRotations();
+            } else {
+                $collRotations = RotationQuery::create(null, $criteria)
+                    ->filterByCcPlaylist($this)
+                    ->find($con);
+                if (null !== $criteria) {
+                    if (false !== $this->collRotationsPartial && count($collRotations)) {
+                      $this->initRotations(false);
+
+                      foreach ($collRotations as $obj) {
+                        if (false == $this->collRotations->contains($obj)) {
+                          $this->collRotations->append($obj);
+                        }
+                      }
+
+                      $this->collRotationsPartial = true;
+                    }
+
+                    $collRotations->getInternalIterator()->rewind();
+
+                    return $collRotations;
+                }
+
+                if ($partial && $this->collRotations) {
+                    foreach ($this->collRotations as $obj) {
+                        if ($obj->isNew()) {
+                            $collRotations[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collRotations = $collRotations;
+                $this->collRotationsPartial = false;
+            }
+        }
+
+        return $this->collRotations;
+    }
+
+    /**
+     * Sets a collection of Rotation objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param PropelCollection $rotations A Propel collection.
+     * @param PropelPDO $con Optional connection object
+     * @return CcPlaylist The current object (for fluent API support)
+     */
+    public function setRotations(PropelCollection $rotations, PropelPDO $con = null)
+    {
+        $rotationsToDelete = $this->getRotations(new Criteria(), $con)->diff($rotations);
+
+
+        $this->rotationsScheduledForDeletion = $rotationsToDelete;
+
+        foreach ($rotationsToDelete as $rotationRemoved) {
+            $rotationRemoved->setCcPlaylist(null);
+        }
+
+        $this->collRotations = null;
+        foreach ($rotations as $rotation) {
+            $this->addRotation($rotation);
+        }
+
+        $this->collRotations = $rotations;
+        $this->collRotationsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Rotation objects.
+     *
+     * @param Criteria $criteria
+     * @param boolean $distinct
+     * @param PropelPDO $con
+     * @return int             Count of related Rotation objects.
+     * @throws PropelException
+     */
+    public function countRotations(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
+    {
+        $partial = $this->collRotationsPartial && !$this->isNew();
+        if (null === $this->collRotations || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collRotations) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getRotations());
+            }
+            $query = RotationQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByCcPlaylist($this)
+                ->count($con);
+        }
+
+        return count($this->collRotations);
+    }
+
+    /**
+     * Method called to associate a Rotation object to this object
+     * through the Rotation foreign key attribute.
+     *
+     * @param    Rotation $l Rotation
+     * @return CcPlaylist The current object (for fluent API support)
+     */
+    public function addRotation(Rotation $l)
+    {
+        if ($this->collRotations === null) {
+            $this->initRotations();
+            $this->collRotationsPartial = true;
+        }
+
+        if (!in_array($l, $this->collRotations->getArrayCopy(), true)) { // only add it if the **same** object is not already associated
+            $this->doAddRotation($l);
+
+            if ($this->rotationsScheduledForDeletion and $this->rotationsScheduledForDeletion->contains($l)) {
+                $this->rotationsScheduledForDeletion->remove($this->rotationsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param	Rotation $rotation The rotation object to add.
+     */
+    protected function doAddRotation($rotation)
+    {
+        $this->collRotations[]= $rotation;
+        $rotation->setCcPlaylist($this);
+    }
+
+    /**
+     * @param	Rotation $rotation The rotation object to remove.
+     * @return CcPlaylist The current object (for fluent API support)
+     */
+    public function removeRotation($rotation)
+    {
+        if ($this->getRotations()->contains($rotation)) {
+            $this->collRotations->remove($this->collRotations->search($rotation));
+            if (null === $this->rotationsScheduledForDeletion) {
+                $this->rotationsScheduledForDeletion = clone $this->collRotations;
+                $this->rotationsScheduledForDeletion->clear();
+            }
+            $this->rotationsScheduledForDeletion[]= $rotation;
+            $rotation->setCcPlaylist(null);
+        }
+
+        return $this;
+    }
+
+    /**
      * Clears the current object and sets all attributes to their default values
      */
     public function clear()
@@ -1623,6 +1900,11 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collRotations) {
+                foreach ($this->collRotations as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
             if ($this->aCcSubjs instanceof Persistent) {
               $this->aCcSubjs->clearAllReferences($deep);
             }
@@ -1634,6 +1916,10 @@ abstract class BaseCcPlaylist extends BaseObject implements Persistent
             $this->collCcPlaylistcontentss->clearIterator();
         }
         $this->collCcPlaylistcontentss = null;
+        if ($this->collRotations instanceof PropelCollection) {
+            $this->collRotations->clearIterator();
+        }
+        $this->collRotations = null;
         $this->aCcSubjs = null;
     }
 

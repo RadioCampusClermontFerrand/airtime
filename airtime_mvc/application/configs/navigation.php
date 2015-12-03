@@ -32,8 +32,8 @@ $pages = array(
     array(
         'label'      => "<i class='icon-refresh icon-white'></i>"._('Rotations'),
         'module'     => 'default',
-        'controller' => 'render',
-        'action'     => 'rotation-settings-page'
+        'controller' => 'rotation',
+        'action'     => 'settings'
     ),
     array(
         'label'      =>  "<i class='icon-wrench icon-white'></i>"._('Widgets'),

@@ -24,19 +24,28 @@ abstract class BaseRotationPeer
     const TM_CLASS = 'RotationTableMap';
 
     /** The total number of columns. */
-    const NUM_COLUMNS = 2;
+    const NUM_COLUMNS = 5;
 
     /** The number of lazy-loaded columns. */
     const NUM_LAZY_LOAD_COLUMNS = 0;
 
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-    const NUM_HYDRATE_COLUMNS = 2;
+    const NUM_HYDRATE_COLUMNS = 5;
 
     /** the column name for the id field */
     const ID = 'rotation.id';
 
-    /** the column name for the type field */
-    const TYPE = 'rotation.type';
+    /** the column name for the name field */
+    const NAME = 'rotation.name';
+
+    /** the column name for the minimum_track_length field */
+    const MINIMUM_TRACK_LENGTH = 'rotation.minimum_track_length';
+
+    /** the column name for the maximum_track_length field */
+    const MAXIMUM_TRACK_LENGTH = 'rotation.maximum_track_length';
+
+    /** the column name for the playlist field */
+    const PLAYLIST = 'rotation.playlist';
 
     /** The default string format for model objects of the related table **/
     const DEFAULT_STRING_FORMAT = 'YAML';
@@ -57,12 +66,12 @@ abstract class BaseRotationPeer
      * e.g. RotationPeer::$fieldNames[RotationPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbType', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbType', ),
-        BasePeer::TYPE_COLNAME => array (RotationPeer::ID, RotationPeer::TYPE, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'TYPE', ),
-        BasePeer::TYPE_FIELDNAME => array ('id', 'type', ),
-        BasePeer::TYPE_NUM => array (0, 1, )
+        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbName', 'DbMinimumTrackLength', 'DbMaximumTrackLength', 'DbPlaylist', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbName', 'dbMinimumTrackLength', 'dbMaximumTrackLength', 'dbPlaylist', ),
+        BasePeer::TYPE_COLNAME => array (RotationPeer::ID, RotationPeer::NAME, RotationPeer::MINIMUM_TRACK_LENGTH, RotationPeer::MAXIMUM_TRACK_LENGTH, RotationPeer::PLAYLIST, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'NAME', 'MINIMUM_TRACK_LENGTH', 'MAXIMUM_TRACK_LENGTH', 'PLAYLIST', ),
+        BasePeer::TYPE_FIELDNAME => array ('id', 'name', 'minimum_track_length', 'maximum_track_length', 'playlist', ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, )
     );
 
     /**
@@ -72,12 +81,12 @@ abstract class BaseRotationPeer
      * e.g. RotationPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbType' => 1, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbType' => 1, ),
-        BasePeer::TYPE_COLNAME => array (RotationPeer::ID => 0, RotationPeer::TYPE => 1, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'TYPE' => 1, ),
-        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'type' => 1, ),
-        BasePeer::TYPE_NUM => array (0, 1, )
+        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbName' => 1, 'DbMinimumTrackLength' => 2, 'DbMaximumTrackLength' => 3, 'DbPlaylist' => 4, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbName' => 1, 'dbMinimumTrackLength' => 2, 'dbMaximumTrackLength' => 3, 'dbPlaylist' => 4, ),
+        BasePeer::TYPE_COLNAME => array (RotationPeer::ID => 0, RotationPeer::NAME => 1, RotationPeer::MINIMUM_TRACK_LENGTH => 2, RotationPeer::MAXIMUM_TRACK_LENGTH => 3, RotationPeer::PLAYLIST => 4, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'NAME' => 1, 'MINIMUM_TRACK_LENGTH' => 2, 'MAXIMUM_TRACK_LENGTH' => 3, 'PLAYLIST' => 4, ),
+        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'name' => 1, 'minimum_track_length' => 2, 'maximum_track_length' => 3, 'playlist' => 4, ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, )
     );
 
     /**
@@ -152,10 +161,16 @@ abstract class BaseRotationPeer
     {
         if (null === $alias) {
             $criteria->addSelectColumn(RotationPeer::ID);
-            $criteria->addSelectColumn(RotationPeer::TYPE);
+            $criteria->addSelectColumn(RotationPeer::NAME);
+            $criteria->addSelectColumn(RotationPeer::MINIMUM_TRACK_LENGTH);
+            $criteria->addSelectColumn(RotationPeer::MAXIMUM_TRACK_LENGTH);
+            $criteria->addSelectColumn(RotationPeer::PLAYLIST);
         } else {
             $criteria->addSelectColumn($alias . '.id');
-            $criteria->addSelectColumn($alias . '.type');
+            $criteria->addSelectColumn($alias . '.name');
+            $criteria->addSelectColumn($alias . '.minimum_track_length');
+            $criteria->addSelectColumn($alias . '.maximum_track_length');
+            $criteria->addSelectColumn($alias . '.playlist');
         }
     }
 
@@ -457,6 +472,244 @@ abstract class BaseRotationPeer
         }
 
         return array($obj, $col);
+    }
+
+
+    /**
+     * Returns the number of rows matching criteria, joining the related CcPlaylist table
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct Whether to select only distinct columns; deprecated: use Criteria->setDistinct() instead.
+     * @param      PropelPDO $con
+     * @param      String    $join_behavior the type of joins to use, defaults to Criteria::LEFT_JOIN
+     * @return int Number of matching rows.
+     */
+    public static function doCountJoinCcPlaylist(Criteria $criteria, $distinct = false, PropelPDO $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        // we're going to modify criteria, so copy it first
+        $criteria = clone $criteria;
+
+        // We need to set the primary table name, since in the case that there are no WHERE columns
+        // it will be impossible for the BasePeer::createSelectSql() method to determine which
+        // tables go into the FROM clause.
+        $criteria->setPrimaryTableName(RotationPeer::TABLE_NAME);
+
+        if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
+            $criteria->setDistinct();
+        }
+
+        if (!$criteria->hasSelectClause()) {
+            RotationPeer::addSelectColumns($criteria);
+        }
+
+        $criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
+
+        // Set the correct dbName
+        $criteria->setDbName(RotationPeer::DATABASE_NAME);
+
+        if ($con === null) {
+            $con = Propel::getConnection(RotationPeer::DATABASE_NAME, Propel::CONNECTION_READ);
+        }
+
+        $criteria->addJoin(RotationPeer::PLAYLIST, CcPlaylistPeer::ID, $join_behavior);
+
+        $stmt = BasePeer::doCount($criteria, $con);
+
+        if ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+            $count = (int) $row[0];
+        } else {
+            $count = 0; // no rows returned; we infer that means 0 matches.
+        }
+        $stmt->closeCursor();
+
+        return $count;
+    }
+
+
+    /**
+     * Selects a collection of Rotation objects pre-filled with their CcPlaylist objects.
+     * @param      Criteria  $criteria
+     * @param      PropelPDO $con
+     * @param      String    $join_behavior the type of joins to use, defaults to Criteria::LEFT_JOIN
+     * @return array           Array of Rotation objects.
+     * @throws PropelException Any exceptions caught during processing will be
+     *		 rethrown wrapped into a PropelException.
+     */
+    public static function doSelectJoinCcPlaylist(Criteria $criteria, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $criteria = clone $criteria;
+
+        // Set the correct dbName if it has not been overridden
+        if ($criteria->getDbName() == Propel::getDefaultDB()) {
+            $criteria->setDbName(RotationPeer::DATABASE_NAME);
+        }
+
+        RotationPeer::addSelectColumns($criteria);
+        $startcol = RotationPeer::NUM_HYDRATE_COLUMNS;
+        CcPlaylistPeer::addSelectColumns($criteria);
+
+        $criteria->addJoin(RotationPeer::PLAYLIST, CcPlaylistPeer::ID, $join_behavior);
+
+        $stmt = BasePeer::doSelect($criteria, $con);
+        $results = array();
+
+        while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+            $key1 = RotationPeer::getPrimaryKeyHashFromRow($row, 0);
+            if (null !== ($obj1 = RotationPeer::getInstanceFromPool($key1))) {
+                // We no longer rehydrate the object, since this can cause data loss.
+                // See http://www.propelorm.org/ticket/509
+                // $obj1->hydrate($row, 0, true); // rehydrate
+            } else {
+
+                $cls = RotationPeer::getOMClass();
+
+                $obj1 = new $cls();
+                $obj1->hydrate($row);
+                RotationPeer::addInstanceToPool($obj1, $key1);
+            } // if $obj1 already loaded
+
+            $key2 = CcPlaylistPeer::getPrimaryKeyHashFromRow($row, $startcol);
+            if ($key2 !== null) {
+                $obj2 = CcPlaylistPeer::getInstanceFromPool($key2);
+                if (!$obj2) {
+
+                    $cls = CcPlaylistPeer::getOMClass();
+
+                    $obj2 = new $cls();
+                    $obj2->hydrate($row, $startcol);
+                    CcPlaylistPeer::addInstanceToPool($obj2, $key2);
+                } // if obj2 already loaded
+
+                // Add the $obj1 (Rotation) to $obj2 (CcPlaylist)
+                $obj2->addRotation($obj1);
+
+            } // if joined row was not null
+
+            $results[] = $obj1;
+        }
+        $stmt->closeCursor();
+
+        return $results;
+    }
+
+
+    /**
+     * Returns the number of rows matching criteria, joining all related tables
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct Whether to select only distinct columns; deprecated: use Criteria->setDistinct() instead.
+     * @param      PropelPDO $con
+     * @param      String    $join_behavior the type of joins to use, defaults to Criteria::LEFT_JOIN
+     * @return int Number of matching rows.
+     */
+    public static function doCountJoinAll(Criteria $criteria, $distinct = false, PropelPDO $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        // we're going to modify criteria, so copy it first
+        $criteria = clone $criteria;
+
+        // We need to set the primary table name, since in the case that there are no WHERE columns
+        // it will be impossible for the BasePeer::createSelectSql() method to determine which
+        // tables go into the FROM clause.
+        $criteria->setPrimaryTableName(RotationPeer::TABLE_NAME);
+
+        if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
+            $criteria->setDistinct();
+        }
+
+        if (!$criteria->hasSelectClause()) {
+            RotationPeer::addSelectColumns($criteria);
+        }
+
+        $criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
+
+        // Set the correct dbName
+        $criteria->setDbName(RotationPeer::DATABASE_NAME);
+
+        if ($con === null) {
+            $con = Propel::getConnection(RotationPeer::DATABASE_NAME, Propel::CONNECTION_READ);
+        }
+
+        $criteria->addJoin(RotationPeer::PLAYLIST, CcPlaylistPeer::ID, $join_behavior);
+
+        $stmt = BasePeer::doCount($criteria, $con);
+
+        if ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+            $count = (int) $row[0];
+        } else {
+            $count = 0; // no rows returned; we infer that means 0 matches.
+        }
+        $stmt->closeCursor();
+
+        return $count;
+    }
+
+    /**
+     * Selects a collection of Rotation objects pre-filled with all related objects.
+     *
+     * @param      Criteria  $criteria
+     * @param      PropelPDO $con
+     * @param      String    $join_behavior the type of joins to use, defaults to Criteria::LEFT_JOIN
+     * @return array           Array of Rotation objects.
+     * @throws PropelException Any exceptions caught during processing will be
+     *		 rethrown wrapped into a PropelException.
+     */
+    public static function doSelectJoinAll(Criteria $criteria, $con = null, $join_behavior = Criteria::LEFT_JOIN)
+    {
+        $criteria = clone $criteria;
+
+        // Set the correct dbName if it has not been overridden
+        if ($criteria->getDbName() == Propel::getDefaultDB()) {
+            $criteria->setDbName(RotationPeer::DATABASE_NAME);
+        }
+
+        RotationPeer::addSelectColumns($criteria);
+        $startcol2 = RotationPeer::NUM_HYDRATE_COLUMNS;
+
+        CcPlaylistPeer::addSelectColumns($criteria);
+        $startcol3 = $startcol2 + CcPlaylistPeer::NUM_HYDRATE_COLUMNS;
+
+        $criteria->addJoin(RotationPeer::PLAYLIST, CcPlaylistPeer::ID, $join_behavior);
+
+        $stmt = BasePeer::doSelect($criteria, $con);
+        $results = array();
+
+        while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+            $key1 = RotationPeer::getPrimaryKeyHashFromRow($row, 0);
+            if (null !== ($obj1 = RotationPeer::getInstanceFromPool($key1))) {
+                // We no longer rehydrate the object, since this can cause data loss.
+                // See http://www.propelorm.org/ticket/509
+                // $obj1->hydrate($row, 0, true); // rehydrate
+            } else {
+                $cls = RotationPeer::getOMClass();
+
+                $obj1 = new $cls();
+                $obj1->hydrate($row);
+                RotationPeer::addInstanceToPool($obj1, $key1);
+            } // if obj1 already loaded
+
+            // Add objects for joined CcPlaylist rows
+
+            $key2 = CcPlaylistPeer::getPrimaryKeyHashFromRow($row, $startcol2);
+            if ($key2 !== null) {
+                $obj2 = CcPlaylistPeer::getInstanceFromPool($key2);
+                if (!$obj2) {
+
+                    $cls = CcPlaylistPeer::getOMClass();
+
+                    $obj2 = new $cls();
+                    $obj2->hydrate($row, $startcol2);
+                    CcPlaylistPeer::addInstanceToPool($obj2, $key2);
+                } // if obj2 loaded
+
+                // Add the $obj1 (Rotation) to the collection in $obj2 (CcPlaylist)
+                $obj2->addRotation($obj1);
+            } // if joined row not null
+
+            $results[] = $obj1;
+        }
+        $stmt->closeCursor();
+
+        return $results;
     }
 
     /**

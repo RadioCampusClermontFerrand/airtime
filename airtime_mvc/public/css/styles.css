@@ -4076,7 +4076,8 @@ li .ui-state-hover {
     box-sizing: border-box;
 }
 
-[id^="podcast_episodes"][id$="_wrapper"] td {
+[id^="podcast_episodes"][id$="_wrapper"] td,
+[id^="rotation"][id$="_wrapper"] td {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

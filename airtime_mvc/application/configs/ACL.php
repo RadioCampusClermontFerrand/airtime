@@ -37,6 +37,7 @@ $ccAcl->add(new Zend_Acl_Resource('library'))
       ->add(new Zend_Acl_Resource('rest:show-image'))
       ->add(new Zend_Acl_Resource('rest:podcast'))
       ->add(new Zend_Acl_Resource('rest:podcast-episodes'))
+      ->add(new Zend_Acl_Resource('rest:rotation'))
       ->add(new Zend_Acl_Resource('podcast'))
       ->add(new Zend_Acl_Resource('billing'))
       ->add(new Zend_Acl_Resource('thank-you'))
@@ -46,7 +47,8 @@ $ccAcl->add(new Zend_Acl_Resource('library'))
       ->add(new Zend_Acl_Resource('soundcloud'))
       ->add(new Zend_Acl_Resource('embeddablewidgets'))
       ->add(new Zend_Acl_Resource('setup'))
-      ->add(new Zend_Acl_Resource('feeds'));
+      ->add(new Zend_Acl_Resource('feeds'))
+      ->add(new Zend_Acl_Resource('rotation'));
 
 /** Creating permissions */
 $ccAcl->allow('G', 'index')
@@ -77,6 +79,8 @@ $ccAcl->allow('G', 'index')
       ->allow('H', 'rest:media')
       ->allow('H', 'rest:podcast')
       ->allow('H', 'rest:podcast-episodes')
+      ->allow('H', 'rest:rotation')
+      ->allow('H', 'rotation')
       ->allow('H', 'podcast')
       ->allow('H', 'preference', 'is-import-in-progress')
       ->allow('H', 'usersettings')
@@ -91,7 +95,7 @@ $ccAcl->allow('G', 'index')
       ->allow('A', 'preference')
       ->allow('S', 'thank-you')
       ->allow('S', 'billing');
-      
+
 
 $aclPlugin = new Zend_Controller_Plugin_Acl($ccAcl);
 

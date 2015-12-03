@@ -40,7 +40,10 @@ class RotationTableMap extends TableMap
         $this->setPrimaryKeyMethodInfo('rotation_id_seq');
         // columns
         $this->addPrimaryKey('id', 'DbId', 'INTEGER', true, null, null);
-        $this->addColumn('type', 'DbType', 'VARCHAR', true, null, null);
+        $this->addColumn('name', 'DbName', 'VARCHAR', true, null, null);
+        $this->addColumn('minimum_track_length', 'DbMinimumTrackLength', 'INTEGER', false, null, 60);
+        $this->addColumn('maximum_track_length', 'DbMaximumTrackLength', 'INTEGER', false, null, 600);
+        $this->addForeignKey('playlist', 'DbPlaylist', 'INTEGER', 'cc_playlist', 'id', false, null, null);
         // validators
     } // initialize()
 
@@ -49,7 +52,8 @@ class RotationTableMap extends TableMap
      */
     public function buildRelations()
     {
-        $this->addRelation('CcShowInstances', 'CcShowInstances', RelationMap::ONE_TO_MANY, array('id' => 'rotation', ), 'CASCADE', null, 'CcShowInstancess');
+        $this->addRelation('CcPlaylist', 'CcPlaylist', RelationMap::MANY_TO_ONE, array('playlist' => 'id', ), 'SET NULL', null);
+        $this->addRelation('CcShowInstances', 'CcShowInstances', RelationMap::ONE_TO_MANY, array('id' => 'rotation', ), 'SET NULL', null, 'CcShowInstancess');
     } // buildRelations()
 
 } // RotationTableMap

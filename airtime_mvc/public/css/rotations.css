@@ -1,0 +1,21 @@
+#rotations .angular_wrapper {
+    -webkit-flex-flow: row;
+    -moz-flex-flow: row;
+    -ms-flex-flow: row;
+    -o-flex-flow: row;
+    flex-flow: row;
+    overflow: hidden;
+}
+
+#rotation_table_wrapper, #rotation_preview_wrapper {
+    position: relative;
+    -webkit-flex: 0 auto;
+    -moz-flex: 0 auto;
+    -ms-flex: 0 auto;
+    -o-flex: 0 auto;
+    flex: 0 auto;
+
+    width: 40%;
+    height: 80%;
+    margin: auto;
+}

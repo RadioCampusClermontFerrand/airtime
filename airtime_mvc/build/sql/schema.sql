@@ -788,7 +788,10 @@ DROP TABLE IF EXISTS "rotation" CASCADE;
 CREATE TABLE "rotation"
 (
     "id" serial NOT NULL,
-    "type" VARCHAR NOT NULL,
+    "name" VARCHAR NOT NULL,
+    "minimum_track_length" INTEGER DEFAULT 60,
+    "maximum_track_length" INTEGER DEFAULT 600,
+    "playlist" INTEGER,
     PRIMARY KEY ("id")
 );
 
@@ -829,10 +832,10 @@ ALTER TABLE "cc_show_instances" ADD CONSTRAINT "cc_recorded_file_fkey"
     REFERENCES "cc_files" ("id")
     ON DELETE CASCADE;
 
-ALTER TABLE "cc_show_instances" ADD CONSTRAINT "rotation_fkey"
+ALTER TABLE "cc_show_instances" ADD CONSTRAINT "cc_show_instances_rotation_fkey"
     FOREIGN KEY ("rotation")
     REFERENCES "rotation" ("id")
-    ON DELETE CASCADE;
+    ON DELETE SET NULL;
 
 ALTER TABLE "cc_show_days" ADD CONSTRAINT "cc_show_fkey"
     FOREIGN KEY ("show_id")
@@ -993,3 +996,8 @@ ALTER TABLE "podcast_episodes" ADD CONSTRAINT "podcast_episodes_podcast_id_fkey"
     FOREIGN KEY ("podcast_id")
     REFERENCES "podcast" ("id")
     ON DELETE CASCADE;
+
+ALTER TABLE "rotation" ADD CONSTRAINT "rotation_cc_playlist_fkey"
+    FOREIGN KEY ("playlist")
+    REFERENCES "cc_playlist" ("id")
+    ON DELETE SET NULL;

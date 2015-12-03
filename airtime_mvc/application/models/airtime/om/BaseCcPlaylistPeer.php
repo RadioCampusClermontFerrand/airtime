@@ -388,6 +388,9 @@ abstract class BaseCcPlaylistPeer
         // Invalidate objects in CcPlaylistcontentsPeer instance pool,
         // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
         CcPlaylistcontentsPeer::clearInstancePool();
+        // Invalidate objects in RotationPeer instance pool,
+        // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+        RotationPeer::clearInstancePool();
     }
 
     /**
