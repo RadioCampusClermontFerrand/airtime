@@ -23,7 +23,6 @@ class Rest_ListenerStatsController extends Zend_Rest_Controller
         $sortColumn = $this->_getParam('sort', ListenerStatsPeer::ID);
         $sortDir = $this->_getParam('sort_dir', Criteria::ASC);
 
-        $stationPodcastId = Application_Model_Preference::getStationPodcastId();
         $query = ListenerStatsQuery::create()
             ->setLimit($limit)
             ->setOffset($offset)
