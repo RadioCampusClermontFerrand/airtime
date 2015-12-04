@@ -17,15 +17,44 @@ class ListenerStatNotFoundException extends Exception {}
  */
 class ListenerStats extends BaseListenerStats
 {
+    public static function create($data)
+    {
+        $listenerStat = new ListenerStats();
+        $listenerStat->setDbBytes($data->bytes)
+            ->setDbDisconnectTimestamp($data->timestamp)
+            ->setDbIp($data->client_ip)
+            ->setDbSessionDuration($data->session_duration)
+            ->setDbMount($data->mount)
+            ->setDbUserAgent($data->user_agent)
+            ->setDbReferrer($data->referrer);
+
+
+        //TODO: fix this path
+        $reader = new Reader('/home/denise/Airtime/GeoLite2-City.mmdb');
+
+        try {
+            $record = $reader->city($data->client_ip);
+            $listenerStat->setDbCountryIsoCode($record->country->isoCode)
+                ->setDbCountryName($record->country->name)
+                ->setDbCity($record->city->name)
+                ->save();
+        } catch (GeoIp2\Exception\AddressNotFoundException $e) {
+
+        } catch (MaxMind\Db\InvalidDatabaseException $e) {
+
+        }
+
+    }
+
     public static function getGeoLocationsStats($start=null, $end=null)
     {
         if(is_null($start) && is_null($end)) {
-            $ips = ListenerStatsQuery::create()
-                ->select(array('geo_ip'))
+            $stats = ListenerStatsQuery::create()
+                ->select(array('ip', 'city', 'country_iso_code'))
                 ->find();
         } else {
-            $ips = ListenerStatsQuery::create()
-                ->select(array('geo_ip'))
+            $stats = ListenerStatsQuery::create()
+                ->select(array('ip', 'city', 'country_iso_code'))
                 ->filterByDbDisconnectTimestamp($start, Criteria::GREATER_EQUAL)
                 ->filterByDbDisconnectTimestamp($end, Criteria::LESS_THAN)
                 ->find();
@@ -33,22 +62,11 @@ class ListenerStats extends BaseListenerStats
 
         $result = array();
 
-        //TODO: fix this path
-        $reader = new Reader('/home/denise/Airtime/GeoLite2-City.mmdb');
-
-        foreach($ips as $ip) {
-            try {
-                $record = $reader->city($ip);
-            } catch (GeoIp2\Exception\AddressNotFoundException $e) {
-                continue;
-            } catch (MaxMind\Db\InvalidDatabaseException $e) {
-                continue;
+        foreach($stats as $stat) {
+            if (!isset($result[$stat->getDbCountryIsoCode()])) {
+                $result[$stat->getDbCountryIsoCode()] = array();
             }
-
-            if (!isset($result[$record->country->isoCode])) {
-                $result[$record->country->isoCode] = array();
-            }
-            array_push($result[$record->country->isoCode], $ip);
+            array_push($result[$stat->getDbCountryIsoCode()], $stat->getDbIp());
         }
         return $result;
     }

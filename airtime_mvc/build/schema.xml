@@ -628,7 +628,8 @@
     <column name="disconnect_timestamp" phpName="DbDisconnectTimestamp" type="TIMESTAMP" required="true" />
     <column name="ip" phpName="DbIp" type="VARCHAR" size="256" required="true" />
     <column name="city" phpName="DbCity" type="VARCHAR" size="256" />
-    <column name="country" phpName="DbCountry" type="VARCHAR" size="256" />
+    <column name="country_name" phpName="DbCountryName" type="VARCHAR" size="256" />
+    <column name="country_iso_code" phpName="DbCountryIsoCode" type="VARCHAR" size="256" />
     <column name="session_duration" phpName="DbSessionDuration" type="INTEGER" required="true" />
     <column name="mount" phpName="DbMount" type="VARCHAR" size="256" required="true" />
     <column name="bytes" phpName="DbBytes" type="INTEGER" required="true" />

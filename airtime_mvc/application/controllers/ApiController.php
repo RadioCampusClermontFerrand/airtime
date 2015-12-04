@@ -154,15 +154,7 @@ class ApiController extends Zend_Controller_Action
                 if ($ts > Application_Model_Preference::getBandwidthLimitUpdateTimer()) {
                     // Listener stats stuff
                     if ($entry->session_duration > 10) {
-                        $listenerStat = new ListenerStats();
-                        $listenerStat->setDbBytes($entry->bytes)
-                            ->setDbDisconnectTimestamp($entry->timestamp)
-                            ->setDbGeoIp($entry->client_ip)
-                            ->setDbSessionDuration($entry->session_duration)
-                            ->setDbMount($entry->mount)
-                            ->setDbUserAgent($entry->user_agent)
-                            ->setDbReferrer($entry->referrer)
-                            ->save();
+                        ListenerStats::create($entry);
                     }
 
                     // Bandwidth limit stuff
