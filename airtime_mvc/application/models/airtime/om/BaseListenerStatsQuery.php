@@ -8,7 +8,9 @@
  *
  * @method ListenerStatsQuery orderByDbId($order = Criteria::ASC) Order by the id column
  * @method ListenerStatsQuery orderByDbDisconnectTimestamp($order = Criteria::ASC) Order by the disconnect_timestamp column
- * @method ListenerStatsQuery orderByDbGeoIp($order = Criteria::ASC) Order by the geo_ip column
+ * @method ListenerStatsQuery orderByDbIp($order = Criteria::ASC) Order by the ip column
+ * @method ListenerStatsQuery orderByDbCity($order = Criteria::ASC) Order by the city column
+ * @method ListenerStatsQuery orderByDbCountry($order = Criteria::ASC) Order by the country column
  * @method ListenerStatsQuery orderByDbSessionDuration($order = Criteria::ASC) Order by the session_duration column
  * @method ListenerStatsQuery orderByDbMount($order = Criteria::ASC) Order by the mount column
  * @method ListenerStatsQuery orderByDbBytes($order = Criteria::ASC) Order by the bytes column
@@ -17,7 +19,9 @@
  *
  * @method ListenerStatsQuery groupByDbId() Group by the id column
  * @method ListenerStatsQuery groupByDbDisconnectTimestamp() Group by the disconnect_timestamp column
- * @method ListenerStatsQuery groupByDbGeoIp() Group by the geo_ip column
+ * @method ListenerStatsQuery groupByDbIp() Group by the ip column
+ * @method ListenerStatsQuery groupByDbCity() Group by the city column
+ * @method ListenerStatsQuery groupByDbCountry() Group by the country column
  * @method ListenerStatsQuery groupByDbSessionDuration() Group by the session_duration column
  * @method ListenerStatsQuery groupByDbMount() Group by the mount column
  * @method ListenerStatsQuery groupByDbBytes() Group by the bytes column
@@ -32,7 +36,9 @@
  * @method ListenerStats findOneOrCreate(PropelPDO $con = null) Return the first ListenerStats matching the query, or a new ListenerStats object populated from the query conditions when no match is found
  *
  * @method ListenerStats findOneByDbDisconnectTimestamp(string $disconnect_timestamp) Return the first ListenerStats filtered by the disconnect_timestamp column
- * @method ListenerStats findOneByDbGeoIp(string $geo_ip) Return the first ListenerStats filtered by the geo_ip column
+ * @method ListenerStats findOneByDbIp(string $ip) Return the first ListenerStats filtered by the ip column
+ * @method ListenerStats findOneByDbCity(string $city) Return the first ListenerStats filtered by the city column
+ * @method ListenerStats findOneByDbCountry(string $country) Return the first ListenerStats filtered by the country column
  * @method ListenerStats findOneByDbSessionDuration(int $session_duration) Return the first ListenerStats filtered by the session_duration column
  * @method ListenerStats findOneByDbMount(string $mount) Return the first ListenerStats filtered by the mount column
  * @method ListenerStats findOneByDbBytes(int $bytes) Return the first ListenerStats filtered by the bytes column
@@ -41,7 +47,9 @@
  *
  * @method array findByDbId(int $id) Return ListenerStats objects filtered by the id column
  * @method array findByDbDisconnectTimestamp(string $disconnect_timestamp) Return ListenerStats objects filtered by the disconnect_timestamp column
- * @method array findByDbGeoIp(string $geo_ip) Return ListenerStats objects filtered by the geo_ip column
+ * @method array findByDbIp(string $ip) Return ListenerStats objects filtered by the ip column
+ * @method array findByDbCity(string $city) Return ListenerStats objects filtered by the city column
+ * @method array findByDbCountry(string $country) Return ListenerStats objects filtered by the country column
  * @method array findByDbSessionDuration(int $session_duration) Return ListenerStats objects filtered by the session_duration column
  * @method array findByDbMount(string $mount) Return ListenerStats objects filtered by the mount column
  * @method array findByDbBytes(int $bytes) Return ListenerStats objects filtered by the bytes column
@@ -154,7 +162,7 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT "id", "disconnect_timestamp", "geo_ip", "session_duration", "mount", "bytes", "referrer", "user_agent" FROM "listener_stats" WHERE "id" = :p0';
+        $sql = 'SELECT "id", "disconnect_timestamp", "ip", "city", "country", "session_duration", "mount", "bytes", "referrer", "user_agent" FROM "listener_stats" WHERE "id" = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -329,32 +337,90 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query on the geo_ip column
+     * Filter the query on the ip column
      *
      * Example usage:
      * <code>
-     * $query->filterByDbGeoIp('fooValue');   // WHERE geo_ip = 'fooValue'
-     * $query->filterByDbGeoIp('%fooValue%'); // WHERE geo_ip LIKE '%fooValue%'
+     * $query->filterByDbIp('fooValue');   // WHERE ip = 'fooValue'
+     * $query->filterByDbIp('%fooValue%'); // WHERE ip LIKE '%fooValue%'
      * </code>
      *
-     * @param     string $dbGeoIp The value to use as filter.
+     * @param     string $dbIp The value to use as filter.
      *              Accepts wildcards (* and % trigger a LIKE)
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return ListenerStatsQuery The current query, for fluid interface
      */
-    public function filterByDbGeoIp($dbGeoIp = null, $comparison = null)
+    public function filterByDbIp($dbIp = null, $comparison = null)
     {
         if (null === $comparison) {
-            if (is_array($dbGeoIp)) {
+            if (is_array($dbIp)) {
                 $comparison = Criteria::IN;
-            } elseif (preg_match('/[\%\*]/', $dbGeoIp)) {
-                $dbGeoIp = str_replace('*', '%', $dbGeoIp);
+            } elseif (preg_match('/[\%\*]/', $dbIp)) {
+                $dbIp = str_replace('*', '%', $dbIp);
                 $comparison = Criteria::LIKE;
             }
         }
 
-        return $this->addUsingAlias(ListenerStatsPeer::GEO_IP, $dbGeoIp, $comparison);
+        return $this->addUsingAlias(ListenerStatsPeer::IP, $dbIp, $comparison);
+    }
+
+    /**
+     * Filter the query on the city column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDbCity('fooValue');   // WHERE city = 'fooValue'
+     * $query->filterByDbCity('%fooValue%'); // WHERE city LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $dbCity The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ListenerStatsQuery The current query, for fluid interface
+     */
+    public function filterByDbCity($dbCity = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($dbCity)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $dbCity)) {
+                $dbCity = str_replace('*', '%', $dbCity);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->addUsingAlias(ListenerStatsPeer::CITY, $dbCity, $comparison);
+    }
+
+    /**
+     * Filter the query on the country column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDbCountry('fooValue');   // WHERE country = 'fooValue'
+     * $query->filterByDbCountry('%fooValue%'); // WHERE country LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $dbCountry The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ListenerStatsQuery The current query, for fluid interface
+     */
+    public function filterByDbCountry($dbCountry = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($dbCountry)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $dbCountry)) {
+                $dbCountry = str_replace('*', '%', $dbCountry);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->addUsingAlias(ListenerStatsPeer::COUNTRY, $dbCountry, $comparison);
     }
 
     /**

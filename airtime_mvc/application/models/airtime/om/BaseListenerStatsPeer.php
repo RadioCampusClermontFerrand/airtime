@@ -24,13 +24,13 @@ abstract class BaseListenerStatsPeer
     const TM_CLASS = 'ListenerStatsTableMap';
 
     /** The total number of columns. */
-    const NUM_COLUMNS = 8;
+    const NUM_COLUMNS = 10;
 
     /** The number of lazy-loaded columns. */
     const NUM_LAZY_LOAD_COLUMNS = 0;
 
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-    const NUM_HYDRATE_COLUMNS = 8;
+    const NUM_HYDRATE_COLUMNS = 10;
 
     /** the column name for the id field */
     const ID = 'listener_stats.id';
@@ -38,8 +38,14 @@ abstract class BaseListenerStatsPeer
     /** the column name for the disconnect_timestamp field */
     const DISCONNECT_TIMESTAMP = 'listener_stats.disconnect_timestamp';
 
-    /** the column name for the geo_ip field */
-    const GEO_IP = 'listener_stats.geo_ip';
+    /** the column name for the ip field */
+    const IP = 'listener_stats.ip';
+
+    /** the column name for the city field */
+    const CITY = 'listener_stats.city';
+
+    /** the column name for the country field */
+    const COUNTRY = 'listener_stats.country';
 
     /** the column name for the session_duration field */
     const SESSION_DURATION = 'listener_stats.session_duration';
@@ -75,12 +81,12 @@ abstract class BaseListenerStatsPeer
      * e.g. ListenerStatsPeer::$fieldNames[ListenerStatsPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbDisconnectTimestamp', 'DbGeoIp', 'DbSessionDuration', 'DbMount', 'DbBytes', 'DbReferrer', 'DbUserAgent', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbDisconnectTimestamp', 'dbGeoIp', 'dbSessionDuration', 'dbMount', 'dbBytes', 'dbReferrer', 'dbUserAgent', ),
-        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID, ListenerStatsPeer::DISCONNECT_TIMESTAMP, ListenerStatsPeer::GEO_IP, ListenerStatsPeer::SESSION_DURATION, ListenerStatsPeer::MOUNT, ListenerStatsPeer::BYTES, ListenerStatsPeer::REFERRER, ListenerStatsPeer::USER_AGENT, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'DISCONNECT_TIMESTAMP', 'GEO_IP', 'SESSION_DURATION', 'MOUNT', 'BYTES', 'REFERRER', 'USER_AGENT', ),
-        BasePeer::TYPE_FIELDNAME => array ('id', 'disconnect_timestamp', 'geo_ip', 'session_duration', 'mount', 'bytes', 'referrer', 'user_agent', ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
+        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbDisconnectTimestamp', 'DbIp', 'DbCity', 'DbCountry', 'DbSessionDuration', 'DbMount', 'DbBytes', 'DbReferrer', 'DbUserAgent', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbDisconnectTimestamp', 'dbIp', 'dbCity', 'dbCountry', 'dbSessionDuration', 'dbMount', 'dbBytes', 'dbReferrer', 'dbUserAgent', ),
+        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID, ListenerStatsPeer::DISCONNECT_TIMESTAMP, ListenerStatsPeer::IP, ListenerStatsPeer::CITY, ListenerStatsPeer::COUNTRY, ListenerStatsPeer::SESSION_DURATION, ListenerStatsPeer::MOUNT, ListenerStatsPeer::BYTES, ListenerStatsPeer::REFERRER, ListenerStatsPeer::USER_AGENT, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'DISCONNECT_TIMESTAMP', 'IP', 'CITY', 'COUNTRY', 'SESSION_DURATION', 'MOUNT', 'BYTES', 'REFERRER', 'USER_AGENT', ),
+        BasePeer::TYPE_FIELDNAME => array ('id', 'disconnect_timestamp', 'ip', 'city', 'country', 'session_duration', 'mount', 'bytes', 'referrer', 'user_agent', ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, )
     );
 
     /**
@@ -90,12 +96,12 @@ abstract class BaseListenerStatsPeer
      * e.g. ListenerStatsPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbDisconnectTimestamp' => 1, 'DbGeoIp' => 2, 'DbSessionDuration' => 3, 'DbMount' => 4, 'DbBytes' => 5, 'DbReferrer' => 6, 'DbUserAgent' => 7, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbDisconnectTimestamp' => 1, 'dbGeoIp' => 2, 'dbSessionDuration' => 3, 'dbMount' => 4, 'dbBytes' => 5, 'dbReferrer' => 6, 'dbUserAgent' => 7, ),
-        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID => 0, ListenerStatsPeer::DISCONNECT_TIMESTAMP => 1, ListenerStatsPeer::GEO_IP => 2, ListenerStatsPeer::SESSION_DURATION => 3, ListenerStatsPeer::MOUNT => 4, ListenerStatsPeer::BYTES => 5, ListenerStatsPeer::REFERRER => 6, ListenerStatsPeer::USER_AGENT => 7, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'DISCONNECT_TIMESTAMP' => 1, 'GEO_IP' => 2, 'SESSION_DURATION' => 3, 'MOUNT' => 4, 'BYTES' => 5, 'REFERRER' => 6, 'USER_AGENT' => 7, ),
-        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'disconnect_timestamp' => 1, 'geo_ip' => 2, 'session_duration' => 3, 'mount' => 4, 'bytes' => 5, 'referrer' => 6, 'user_agent' => 7, ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
+        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbDisconnectTimestamp' => 1, 'DbIp' => 2, 'DbCity' => 3, 'DbCountry' => 4, 'DbSessionDuration' => 5, 'DbMount' => 6, 'DbBytes' => 7, 'DbReferrer' => 8, 'DbUserAgent' => 9, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbDisconnectTimestamp' => 1, 'dbIp' => 2, 'dbCity' => 3, 'dbCountry' => 4, 'dbSessionDuration' => 5, 'dbMount' => 6, 'dbBytes' => 7, 'dbReferrer' => 8, 'dbUserAgent' => 9, ),
+        BasePeer::TYPE_COLNAME => array (ListenerStatsPeer::ID => 0, ListenerStatsPeer::DISCONNECT_TIMESTAMP => 1, ListenerStatsPeer::IP => 2, ListenerStatsPeer::CITY => 3, ListenerStatsPeer::COUNTRY => 4, ListenerStatsPeer::SESSION_DURATION => 5, ListenerStatsPeer::MOUNT => 6, ListenerStatsPeer::BYTES => 7, ListenerStatsPeer::REFERRER => 8, ListenerStatsPeer::USER_AGENT => 9, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'DISCONNECT_TIMESTAMP' => 1, 'IP' => 2, 'CITY' => 3, 'COUNTRY' => 4, 'SESSION_DURATION' => 5, 'MOUNT' => 6, 'BYTES' => 7, 'REFERRER' => 8, 'USER_AGENT' => 9, ),
+        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'disconnect_timestamp' => 1, 'ip' => 2, 'city' => 3, 'country' => 4, 'session_duration' => 5, 'mount' => 6, 'bytes' => 7, 'referrer' => 8, 'user_agent' => 9, ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, )
     );
 
     /**
@@ -171,7 +177,9 @@ abstract class BaseListenerStatsPeer
         if (null === $alias) {
             $criteria->addSelectColumn(ListenerStatsPeer::ID);
             $criteria->addSelectColumn(ListenerStatsPeer::DISCONNECT_TIMESTAMP);
-            $criteria->addSelectColumn(ListenerStatsPeer::GEO_IP);
+            $criteria->addSelectColumn(ListenerStatsPeer::IP);
+            $criteria->addSelectColumn(ListenerStatsPeer::CITY);
+            $criteria->addSelectColumn(ListenerStatsPeer::COUNTRY);
             $criteria->addSelectColumn(ListenerStatsPeer::SESSION_DURATION);
             $criteria->addSelectColumn(ListenerStatsPeer::MOUNT);
             $criteria->addSelectColumn(ListenerStatsPeer::BYTES);
@@ -180,7 +188,9 @@ abstract class BaseListenerStatsPeer
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.disconnect_timestamp');
-            $criteria->addSelectColumn($alias . '.geo_ip');
+            $criteria->addSelectColumn($alias . '.ip');
+            $criteria->addSelectColumn($alias . '.city');
+            $criteria->addSelectColumn($alias . '.country');
             $criteria->addSelectColumn($alias . '.session_duration');
             $criteria->addSelectColumn($alias . '.mount');
             $criteria->addSelectColumn($alias . '.bytes');

@@ -41,7 +41,9 @@ class ListenerStatsTableMap extends TableMap
         // columns
         $this->addPrimaryKey('id', 'DbId', 'INTEGER', true, null, null);
         $this->addColumn('disconnect_timestamp', 'DbDisconnectTimestamp', 'TIMESTAMP', true, null, null);
-        $this->addColumn('geo_ip', 'DbGeoIp', 'VARCHAR', true, 256, null);
+        $this->addColumn('ip', 'DbIp', 'VARCHAR', true, 256, null);
+        $this->addColumn('city', 'DbCity', 'VARCHAR', false, 256, null);
+        $this->addColumn('country', 'DbCountry', 'VARCHAR', false, 256, null);
         $this->addColumn('session_duration', 'DbSessionDuration', 'INTEGER', true, null, null);
         $this->addColumn('mount', 'DbMount', 'VARCHAR', true, 256, null);
         $this->addColumn('bytes', 'DbBytes', 'INTEGER', true, null, null);
