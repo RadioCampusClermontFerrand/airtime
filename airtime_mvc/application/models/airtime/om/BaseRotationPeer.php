@@ -38,11 +38,11 @@ abstract class BaseRotationPeer
     /** the column name for the name field */
     const NAME = 'rotation.name';
 
-    /** the column name for the minimum_track_length field */
-    const MINIMUM_TRACK_LENGTH = 'rotation.minimum_track_length';
+    /** the column name for the criteria field */
+    const CRITERIA = 'rotation.criteria';
 
-    /** the column name for the maximum_track_length field */
-    const MAXIMUM_TRACK_LENGTH = 'rotation.maximum_track_length';
+    /** the column name for the seed field */
+    const SEED = 'rotation.seed';
 
     /** the column name for the playlist field */
     const PLAYLIST = 'rotation.playlist';
@@ -66,11 +66,11 @@ abstract class BaseRotationPeer
      * e.g. RotationPeer::$fieldNames[RotationPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbName', 'DbMinimumTrackLength', 'DbMaximumTrackLength', 'DbPlaylist', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbName', 'dbMinimumTrackLength', 'dbMaximumTrackLength', 'dbPlaylist', ),
-        BasePeer::TYPE_COLNAME => array (RotationPeer::ID, RotationPeer::NAME, RotationPeer::MINIMUM_TRACK_LENGTH, RotationPeer::MAXIMUM_TRACK_LENGTH, RotationPeer::PLAYLIST, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'NAME', 'MINIMUM_TRACK_LENGTH', 'MAXIMUM_TRACK_LENGTH', 'PLAYLIST', ),
-        BasePeer::TYPE_FIELDNAME => array ('id', 'name', 'minimum_track_length', 'maximum_track_length', 'playlist', ),
+        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbName', 'DbCriteria', 'DbSeed', 'DbPlaylist', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbName', 'dbCriteria', 'dbSeed', 'dbPlaylist', ),
+        BasePeer::TYPE_COLNAME => array (RotationPeer::ID, RotationPeer::NAME, RotationPeer::CRITERIA, RotationPeer::SEED, RotationPeer::PLAYLIST, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'NAME', 'CRITERIA', 'SEED', 'PLAYLIST', ),
+        BasePeer::TYPE_FIELDNAME => array ('id', 'name', 'criteria', 'seed', 'playlist', ),
         BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, )
     );
 
@@ -81,11 +81,11 @@ abstract class BaseRotationPeer
      * e.g. RotationPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbName' => 1, 'DbMinimumTrackLength' => 2, 'DbMaximumTrackLength' => 3, 'DbPlaylist' => 4, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbName' => 1, 'dbMinimumTrackLength' => 2, 'dbMaximumTrackLength' => 3, 'dbPlaylist' => 4, ),
-        BasePeer::TYPE_COLNAME => array (RotationPeer::ID => 0, RotationPeer::NAME => 1, RotationPeer::MINIMUM_TRACK_LENGTH => 2, RotationPeer::MAXIMUM_TRACK_LENGTH => 3, RotationPeer::PLAYLIST => 4, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'NAME' => 1, 'MINIMUM_TRACK_LENGTH' => 2, 'MAXIMUM_TRACK_LENGTH' => 3, 'PLAYLIST' => 4, ),
-        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'name' => 1, 'minimum_track_length' => 2, 'maximum_track_length' => 3, 'playlist' => 4, ),
+        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbName' => 1, 'DbCriteria' => 2, 'DbSeed' => 3, 'DbPlaylist' => 4, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbName' => 1, 'dbCriteria' => 2, 'dbSeed' => 3, 'dbPlaylist' => 4, ),
+        BasePeer::TYPE_COLNAME => array (RotationPeer::ID => 0, RotationPeer::NAME => 1, RotationPeer::CRITERIA => 2, RotationPeer::SEED => 3, RotationPeer::PLAYLIST => 4, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'NAME' => 1, 'CRITERIA' => 2, 'SEED' => 3, 'PLAYLIST' => 4, ),
+        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'name' => 1, 'criteria' => 2, 'seed' => 3, 'playlist' => 4, ),
         BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, )
     );
 
@@ -162,14 +162,14 @@ abstract class BaseRotationPeer
         if (null === $alias) {
             $criteria->addSelectColumn(RotationPeer::ID);
             $criteria->addSelectColumn(RotationPeer::NAME);
-            $criteria->addSelectColumn(RotationPeer::MINIMUM_TRACK_LENGTH);
-            $criteria->addSelectColumn(RotationPeer::MAXIMUM_TRACK_LENGTH);
+            $criteria->addSelectColumn(RotationPeer::CRITERIA);
+            $criteria->addSelectColumn(RotationPeer::SEED);
             $criteria->addSelectColumn(RotationPeer::PLAYLIST);
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.name');
-            $criteria->addSelectColumn($alias . '.minimum_track_length');
-            $criteria->addSelectColumn($alias . '.maximum_track_length');
+            $criteria->addSelectColumn($alias . '.criteria');
+            $criteria->addSelectColumn($alias . '.seed');
             $criteria->addSelectColumn($alias . '.playlist');
         }
     }

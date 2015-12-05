@@ -8,14 +8,14 @@
  *
  * @method RotationQuery orderByDbId($order = Criteria::ASC) Order by the id column
  * @method RotationQuery orderByDbName($order = Criteria::ASC) Order by the name column
- * @method RotationQuery orderByDbMinimumTrackLength($order = Criteria::ASC) Order by the minimum_track_length column
- * @method RotationQuery orderByDbMaximumTrackLength($order = Criteria::ASC) Order by the maximum_track_length column
+ * @method RotationQuery orderByDbCriteria($order = Criteria::ASC) Order by the criteria column
+ * @method RotationQuery orderByDbSeed($order = Criteria::ASC) Order by the seed column
  * @method RotationQuery orderByDbPlaylist($order = Criteria::ASC) Order by the playlist column
  *
  * @method RotationQuery groupByDbId() Group by the id column
  * @method RotationQuery groupByDbName() Group by the name column
- * @method RotationQuery groupByDbMinimumTrackLength() Group by the minimum_track_length column
- * @method RotationQuery groupByDbMaximumTrackLength() Group by the maximum_track_length column
+ * @method RotationQuery groupByDbCriteria() Group by the criteria column
+ * @method RotationQuery groupByDbSeed() Group by the seed column
  * @method RotationQuery groupByDbPlaylist() Group by the playlist column
  *
  * @method RotationQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
@@ -34,14 +34,14 @@
  * @method Rotation findOneOrCreate(PropelPDO $con = null) Return the first Rotation matching the query, or a new Rotation object populated from the query conditions when no match is found
  *
  * @method Rotation findOneByDbName(string $name) Return the first Rotation filtered by the name column
- * @method Rotation findOneByDbMinimumTrackLength(int $minimum_track_length) Return the first Rotation filtered by the minimum_track_length column
- * @method Rotation findOneByDbMaximumTrackLength(int $maximum_track_length) Return the first Rotation filtered by the maximum_track_length column
+ * @method Rotation findOneByDbCriteria(string $criteria) Return the first Rotation filtered by the criteria column
+ * @method Rotation findOneByDbSeed(double $seed) Return the first Rotation filtered by the seed column
  * @method Rotation findOneByDbPlaylist(int $playlist) Return the first Rotation filtered by the playlist column
  *
  * @method array findByDbId(int $id) Return Rotation objects filtered by the id column
  * @method array findByDbName(string $name) Return Rotation objects filtered by the name column
- * @method array findByDbMinimumTrackLength(int $minimum_track_length) Return Rotation objects filtered by the minimum_track_length column
- * @method array findByDbMaximumTrackLength(int $maximum_track_length) Return Rotation objects filtered by the maximum_track_length column
+ * @method array findByDbCriteria(string $criteria) Return Rotation objects filtered by the criteria column
+ * @method array findByDbSeed(double $seed) Return Rotation objects filtered by the seed column
  * @method array findByDbPlaylist(int $playlist) Return Rotation objects filtered by the playlist column
  *
  * @package    propel.generator.airtime.om
@@ -150,7 +150,7 @@ abstract class BaseRotationQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT "id", "name", "minimum_track_length", "maximum_track_length", "playlist" FROM "rotation" WHERE "id" = :p0';
+        $sql = 'SELECT "id", "name", "criteria", "seed", "playlist" FROM "rotation" WHERE "id" = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -311,59 +311,46 @@ abstract class BaseRotationQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query on the minimum_track_length column
+     * Filter the query on the criteria column
      *
      * Example usage:
      * <code>
-     * $query->filterByDbMinimumTrackLength(1234); // WHERE minimum_track_length = 1234
-     * $query->filterByDbMinimumTrackLength(array(12, 34)); // WHERE minimum_track_length IN (12, 34)
-     * $query->filterByDbMinimumTrackLength(array('min' => 12)); // WHERE minimum_track_length >= 12
-     * $query->filterByDbMinimumTrackLength(array('max' => 12)); // WHERE minimum_track_length <= 12
+     * $query->filterByDbCriteria('fooValue');   // WHERE criteria = 'fooValue'
+     * $query->filterByDbCriteria('%fooValue%'); // WHERE criteria LIKE '%fooValue%'
      * </code>
      *
-     * @param     mixed $dbMinimumTrackLength The value to use as filter.
-     *              Use scalar values for equality.
-     *              Use array values for in_array() equivalent.
-     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $dbCriteria The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return RotationQuery The current query, for fluid interface
      */
-    public function filterByDbMinimumTrackLength($dbMinimumTrackLength = null, $comparison = null)
+    public function filterByDbCriteria($dbCriteria = null, $comparison = null)
     {
-        if (is_array($dbMinimumTrackLength)) {
-            $useMinMax = false;
-            if (isset($dbMinimumTrackLength['min'])) {
-                $this->addUsingAlias(RotationPeer::MINIMUM_TRACK_LENGTH, $dbMinimumTrackLength['min'], Criteria::GREATER_EQUAL);
-                $useMinMax = true;
-            }
-            if (isset($dbMinimumTrackLength['max'])) {
-                $this->addUsingAlias(RotationPeer::MINIMUM_TRACK_LENGTH, $dbMinimumTrackLength['max'], Criteria::LESS_EQUAL);
-                $useMinMax = true;
-            }
-            if ($useMinMax) {
-                return $this;
-            }
-            if (null === $comparison) {
+        if (null === $comparison) {
+            if (is_array($dbCriteria)) {
                 $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $dbCriteria)) {
+                $dbCriteria = str_replace('*', '%', $dbCriteria);
+                $comparison = Criteria::LIKE;
             }
         }
 
-        return $this->addUsingAlias(RotationPeer::MINIMUM_TRACK_LENGTH, $dbMinimumTrackLength, $comparison);
+        return $this->addUsingAlias(RotationPeer::CRITERIA, $dbCriteria, $comparison);
     }
 
     /**
-     * Filter the query on the maximum_track_length column
+     * Filter the query on the seed column
      *
      * Example usage:
      * <code>
-     * $query->filterByDbMaximumTrackLength(1234); // WHERE maximum_track_length = 1234
-     * $query->filterByDbMaximumTrackLength(array(12, 34)); // WHERE maximum_track_length IN (12, 34)
-     * $query->filterByDbMaximumTrackLength(array('min' => 12)); // WHERE maximum_track_length >= 12
-     * $query->filterByDbMaximumTrackLength(array('max' => 12)); // WHERE maximum_track_length <= 12
+     * $query->filterByDbSeed(1234); // WHERE seed = 1234
+     * $query->filterByDbSeed(array(12, 34)); // WHERE seed IN (12, 34)
+     * $query->filterByDbSeed(array('min' => 12)); // WHERE seed >= 12
+     * $query->filterByDbSeed(array('max' => 12)); // WHERE seed <= 12
      * </code>
      *
-     * @param     mixed $dbMaximumTrackLength The value to use as filter.
+     * @param     mixed $dbSeed The value to use as filter.
      *              Use scalar values for equality.
      *              Use array values for in_array() equivalent.
      *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
@@ -371,16 +358,16 @@ abstract class BaseRotationQuery extends ModelCriteria
      *
      * @return RotationQuery The current query, for fluid interface
      */
-    public function filterByDbMaximumTrackLength($dbMaximumTrackLength = null, $comparison = null)
+    public function filterByDbSeed($dbSeed = null, $comparison = null)
     {
-        if (is_array($dbMaximumTrackLength)) {
+        if (is_array($dbSeed)) {
             $useMinMax = false;
-            if (isset($dbMaximumTrackLength['min'])) {
-                $this->addUsingAlias(RotationPeer::MAXIMUM_TRACK_LENGTH, $dbMaximumTrackLength['min'], Criteria::GREATER_EQUAL);
+            if (isset($dbSeed['min'])) {
+                $this->addUsingAlias(RotationPeer::SEED, $dbSeed['min'], Criteria::GREATER_EQUAL);
                 $useMinMax = true;
             }
-            if (isset($dbMaximumTrackLength['max'])) {
-                $this->addUsingAlias(RotationPeer::MAXIMUM_TRACK_LENGTH, $dbMaximumTrackLength['max'], Criteria::LESS_EQUAL);
+            if (isset($dbSeed['max'])) {
+                $this->addUsingAlias(RotationPeer::SEED, $dbSeed['max'], Criteria::LESS_EQUAL);
                 $useMinMax = true;
             }
             if ($useMinMax) {
@@ -391,7 +378,7 @@ abstract class BaseRotationQuery extends ModelCriteria
             }
         }
 
-        return $this->addUsingAlias(RotationPeer::MAXIMUM_TRACK_LENGTH, $dbMaximumTrackLength, $comparison);
+        return $this->addUsingAlias(RotationPeer::SEED, $dbSeed, $comparison);
     }
 
     /**

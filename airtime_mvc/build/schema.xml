@@ -631,8 +631,8 @@
   <table name="rotation" phpName="Rotation">
     <column name="id" phpName="DbId" primaryKey="true" type="INTEGER" autoIncrement="true" required="true" />
     <column name="name" phpName="DbName" type="VARCHAR" required="true" />
-    <column name="minimum_track_length" phpName="DbMinimumTrackLength" type="INTEGER" default="60" required="false" />
-    <column name="maximum_track_length" phpName="DbMaximumTrackLength" type="INTEGER" default="600" required="false" />
+    <column name="criteria" phpName="DbCriteria" type="LONGVARCHAR" required="false" />
+    <column name="seed" phpName="DbSeed" type="FLOAT" required="false" />
     <column name="playlist" phpName="DbPlaylist" type="INTEGER" required="false" />
     <foreign-key foreignTable="cc_playlist" name="rotation_cc_playlist_fkey" onDelete="SET NULL">
       <reference local="playlist" foreign="id" />

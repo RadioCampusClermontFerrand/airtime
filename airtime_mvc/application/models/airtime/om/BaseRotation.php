@@ -42,18 +42,16 @@ abstract class BaseRotation extends BaseObject implements Persistent
     protected $name;
 
     /**
-     * The value for the minimum_track_length field.
-     * Note: this column has a database default value of: 60
-     * @var        int
+     * The value for the criteria field.
+     * @var        string
      */
-    protected $minimum_track_length;
+    protected $criteria;
 
     /**
-     * The value for the maximum_track_length field.
-     * Note: this column has a database default value of: 600
-     * @var        int
+     * The value for the seed field.
+     * @var        double
      */
-    protected $maximum_track_length;
+    protected $seed;
 
     /**
      * The value for the playlist field.
@@ -99,28 +97,6 @@ abstract class BaseRotation extends BaseObject implements Persistent
     protected $ccShowInstancessScheduledForDeletion = null;
 
     /**
-     * Applies default values to this object.
-     * This method should be called from the object's constructor (or
-     * equivalent initialization method).
-     * @see        __construct()
-     */
-    public function applyDefaultValues()
-    {
-        $this->minimum_track_length = 60;
-        $this->maximum_track_length = 600;
-    }
-
-    /**
-     * Initializes internal state of BaseRotation object.
-     * @see        applyDefaults()
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->applyDefaultValues();
-    }
-
-    /**
      * Get the [id] column value.
      *
      * @return int
@@ -143,25 +119,25 @@ abstract class BaseRotation extends BaseObject implements Persistent
     }
 
     /**
-     * Get the [minimum_track_length] column value.
+     * Get the [criteria] column value.
      *
-     * @return int
+     * @return string
      */
-    public function getDbMinimumTrackLength()
+    public function getDbCriteria()
     {
 
-        return $this->minimum_track_length;
+        return $this->criteria;
     }
 
     /**
-     * Get the [maximum_track_length] column value.
+     * Get the [seed] column value.
      *
-     * @return int
+     * @return double
      */
-    public function getDbMaximumTrackLength()
+    public function getDbSeed()
     {
 
-        return $this->maximum_track_length;
+        return $this->seed;
     }
 
     /**
@@ -218,46 +194,46 @@ abstract class BaseRotation extends BaseObject implements Persistent
     } // setDbName()
 
     /**
-     * Set the value of [minimum_track_length] column.
+     * Set the value of [criteria] column.
      *
-     * @param  int $v new value
+     * @param  string $v new value
      * @return Rotation The current object (for fluent API support)
      */
-    public function setDbMinimumTrackLength($v)
+    public function setDbCriteria($v)
     {
         if ($v !== null && is_numeric($v)) {
-            $v = (int) $v;
+            $v = (string) $v;
         }
 
-        if ($this->minimum_track_length !== $v) {
-            $this->minimum_track_length = $v;
-            $this->modifiedColumns[] = RotationPeer::MINIMUM_TRACK_LENGTH;
+        if ($this->criteria !== $v) {
+            $this->criteria = $v;
+            $this->modifiedColumns[] = RotationPeer::CRITERIA;
         }
 
 
         return $this;
-    } // setDbMinimumTrackLength()
+    } // setDbCriteria()
 
     /**
-     * Set the value of [maximum_track_length] column.
+     * Set the value of [seed] column.
      *
-     * @param  int $v new value
+     * @param  double $v new value
      * @return Rotation The current object (for fluent API support)
      */
-    public function setDbMaximumTrackLength($v)
+    public function setDbSeed($v)
     {
         if ($v !== null && is_numeric($v)) {
-            $v = (int) $v;
+            $v = (double) $v;
         }
 
-        if ($this->maximum_track_length !== $v) {
-            $this->maximum_track_length = $v;
-            $this->modifiedColumns[] = RotationPeer::MAXIMUM_TRACK_LENGTH;
+        if ($this->seed !== $v) {
+            $this->seed = $v;
+            $this->modifiedColumns[] = RotationPeer::SEED;
         }
 
 
         return $this;
-    } // setDbMaximumTrackLength()
+    } // setDbSeed()
 
     /**
      * Set the value of [playlist] column.
@@ -294,14 +270,6 @@ abstract class BaseRotation extends BaseObject implements Persistent
      */
     public function hasOnlyDefaultValues()
     {
-            if ($this->minimum_track_length !== 60) {
-                return false;
-            }
-
-            if ($this->maximum_track_length !== 600) {
-                return false;
-            }
-
         // otherwise, everything was equal, so return true
         return true;
     } // hasOnlyDefaultValues()
@@ -326,8 +294,8 @@ abstract class BaseRotation extends BaseObject implements Persistent
 
             $this->id = ($row[$startcol + 0] !== null) ? (int) $row[$startcol + 0] : null;
             $this->name = ($row[$startcol + 1] !== null) ? (string) $row[$startcol + 1] : null;
-            $this->minimum_track_length = ($row[$startcol + 2] !== null) ? (int) $row[$startcol + 2] : null;
-            $this->maximum_track_length = ($row[$startcol + 3] !== null) ? (int) $row[$startcol + 3] : null;
+            $this->criteria = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
+            $this->seed = ($row[$startcol + 3] !== null) ? (double) $row[$startcol + 3] : null;
             $this->playlist = ($row[$startcol + 4] !== null) ? (int) $row[$startcol + 4] : null;
             $this->resetModified();
 
@@ -602,11 +570,11 @@ abstract class BaseRotation extends BaseObject implements Persistent
         if ($this->isColumnModified(RotationPeer::NAME)) {
             $modifiedColumns[':p' . $index++]  = '"name"';
         }
-        if ($this->isColumnModified(RotationPeer::MINIMUM_TRACK_LENGTH)) {
-            $modifiedColumns[':p' . $index++]  = '"minimum_track_length"';
+        if ($this->isColumnModified(RotationPeer::CRITERIA)) {
+            $modifiedColumns[':p' . $index++]  = '"criteria"';
         }
-        if ($this->isColumnModified(RotationPeer::MAXIMUM_TRACK_LENGTH)) {
-            $modifiedColumns[':p' . $index++]  = '"maximum_track_length"';
+        if ($this->isColumnModified(RotationPeer::SEED)) {
+            $modifiedColumns[':p' . $index++]  = '"seed"';
         }
         if ($this->isColumnModified(RotationPeer::PLAYLIST)) {
             $modifiedColumns[':p' . $index++]  = '"playlist"';
@@ -628,11 +596,11 @@ abstract class BaseRotation extends BaseObject implements Persistent
                     case '"name"':
                         $stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
                         break;
-                    case '"minimum_track_length"':
-                        $stmt->bindValue($identifier, $this->minimum_track_length, PDO::PARAM_INT);
+                    case '"criteria"':
+                        $stmt->bindValue($identifier, $this->criteria, PDO::PARAM_STR);
                         break;
-                    case '"maximum_track_length"':
-                        $stmt->bindValue($identifier, $this->maximum_track_length, PDO::PARAM_INT);
+                    case '"seed"':
+                        $stmt->bindValue($identifier, $this->seed, PDO::PARAM_STR);
                         break;
                     case '"playlist"':
                         $stmt->bindValue($identifier, $this->playlist, PDO::PARAM_INT);
@@ -791,10 +759,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
                 return $this->getDbName();
                 break;
             case 2:
-                return $this->getDbMinimumTrackLength();
+                return $this->getDbCriteria();
                 break;
             case 3:
-                return $this->getDbMaximumTrackLength();
+                return $this->getDbSeed();
                 break;
             case 4:
                 return $this->getDbPlaylist();
@@ -830,8 +798,8 @@ abstract class BaseRotation extends BaseObject implements Persistent
         $result = array(
             $keys[0] => $this->getDbId(),
             $keys[1] => $this->getDbName(),
-            $keys[2] => $this->getDbMinimumTrackLength(),
-            $keys[3] => $this->getDbMaximumTrackLength(),
+            $keys[2] => $this->getDbCriteria(),
+            $keys[3] => $this->getDbSeed(),
             $keys[4] => $this->getDbPlaylist(),
         );
         $virtualColumns = $this->virtualColumns;
@@ -887,10 +855,10 @@ abstract class BaseRotation extends BaseObject implements Persistent
                 $this->setDbName($value);
                 break;
             case 2:
-                $this->setDbMinimumTrackLength($value);
+                $this->setDbCriteria($value);
                 break;
             case 3:
-                $this->setDbMaximumTrackLength($value);
+                $this->setDbSeed($value);
                 break;
             case 4:
                 $this->setDbPlaylist($value);
@@ -921,8 +889,8 @@ abstract class BaseRotation extends BaseObject implements Persistent
 
         if (array_key_exists($keys[0], $arr)) $this->setDbId($arr[$keys[0]]);
         if (array_key_exists($keys[1], $arr)) $this->setDbName($arr[$keys[1]]);
-        if (array_key_exists($keys[2], $arr)) $this->setDbMinimumTrackLength($arr[$keys[2]]);
-        if (array_key_exists($keys[3], $arr)) $this->setDbMaximumTrackLength($arr[$keys[3]]);
+        if (array_key_exists($keys[2], $arr)) $this->setDbCriteria($arr[$keys[2]]);
+        if (array_key_exists($keys[3], $arr)) $this->setDbSeed($arr[$keys[3]]);
         if (array_key_exists($keys[4], $arr)) $this->setDbPlaylist($arr[$keys[4]]);
     }
 
@@ -937,8 +905,8 @@ abstract class BaseRotation extends BaseObject implements Persistent
 
         if ($this->isColumnModified(RotationPeer::ID)) $criteria->add(RotationPeer::ID, $this->id);
         if ($this->isColumnModified(RotationPeer::NAME)) $criteria->add(RotationPeer::NAME, $this->name);
-        if ($this->isColumnModified(RotationPeer::MINIMUM_TRACK_LENGTH)) $criteria->add(RotationPeer::MINIMUM_TRACK_LENGTH, $this->minimum_track_length);
-        if ($this->isColumnModified(RotationPeer::MAXIMUM_TRACK_LENGTH)) $criteria->add(RotationPeer::MAXIMUM_TRACK_LENGTH, $this->maximum_track_length);
+        if ($this->isColumnModified(RotationPeer::CRITERIA)) $criteria->add(RotationPeer::CRITERIA, $this->criteria);
+        if ($this->isColumnModified(RotationPeer::SEED)) $criteria->add(RotationPeer::SEED, $this->seed);
         if ($this->isColumnModified(RotationPeer::PLAYLIST)) $criteria->add(RotationPeer::PLAYLIST, $this->playlist);
 
         return $criteria;
@@ -1004,8 +972,8 @@ abstract class BaseRotation extends BaseObject implements Persistent
     public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
     {
         $copyObj->setDbName($this->getDbName());
-        $copyObj->setDbMinimumTrackLength($this->getDbMinimumTrackLength());
-        $copyObj->setDbMaximumTrackLength($this->getDbMaximumTrackLength());
+        $copyObj->setDbCriteria($this->getDbCriteria());
+        $copyObj->setDbSeed($this->getDbSeed());
         $copyObj->setDbPlaylist($this->getDbPlaylist());
 
         if ($deepCopy && !$this->startCopy) {
@@ -1446,14 +1414,13 @@ abstract class BaseRotation extends BaseObject implements Persistent
     {
         $this->id = null;
         $this->name = null;
-        $this->minimum_track_length = null;
-        $this->maximum_track_length = null;
+        $this->criteria = null;
+        $this->seed = null;
         $this->playlist = null;
         $this->alreadyInSave = false;
         $this->alreadyInValidation = false;
         $this->alreadyInClearAllReferencesDeep = false;
         $this->clearAllReferences();
-        $this->applyDefaultValues();
         $this->resetModified();
         $this->setNew(true);
         $this->setDeleted(false);

@@ -789,8 +789,8 @@ CREATE TABLE "rotation"
 (
     "id" serial NOT NULL,
     "name" VARCHAR NOT NULL,
-    "minimum_track_length" INTEGER DEFAULT 60,
-    "maximum_track_length" INTEGER DEFAULT 600,
+    "criteria" TEXT,
+    "seed" DOUBLE PRECISION,
     "playlist" INTEGER,
     PRIMARY KEY ("id")
 );

@@ -41,8 +41,8 @@ class RotationTableMap extends TableMap
         // columns
         $this->addPrimaryKey('id', 'DbId', 'INTEGER', true, null, null);
         $this->addColumn('name', 'DbName', 'VARCHAR', true, null, null);
-        $this->addColumn('minimum_track_length', 'DbMinimumTrackLength', 'INTEGER', false, null, 60);
-        $this->addColumn('maximum_track_length', 'DbMaximumTrackLength', 'INTEGER', false, null, 600);
+        $this->addColumn('criteria', 'DbCriteria', 'LONGVARCHAR', false, null, null);
+        $this->addColumn('seed', 'DbSeed', 'FLOAT', false, null, null);
         $this->addForeignKey('playlist', 'DbPlaylist', 'INTEGER', 'cc_playlist', 'id', false, null, null);
         // validators
     } // initialize()

@@ -8,6 +8,12 @@ class RotationBuilder {
     /** @var int default Rotation duration */
     protected static $_DEFAULT_ROTATION_LENGTH = 3600;
 
+    /** @var Rotation $rotation */
+    protected $_rotation;
+
+    /** @var PDO $_con database connection */
+    protected $_con;
+
     /**
      * @var PropelObjectCollection stores played track history from the past $_HISTORY_LOOKUP_SECONDS seconds.
      *                             Tracks in history are ignored when finding new tracks for rotation
@@ -49,6 +55,7 @@ class RotationBuilder {
         $this->_history = $this->_getHistory();
         $this->_showInstance = $instance;
         $this->_timeToFill = is_null($length) ? static::$_DEFAULT_ROTATION_LENGTH : $length;
+        $this->_rotation = RotationQuery::create()->findPk($instance->getDbRotation());
     }
 
     /**
@@ -66,6 +73,24 @@ class RotationBuilder {
         $filter->comparison = $comparison;
         $this->_filters[]   = $filter;
         return $this;
+    }
+
+    /**
+     * Encode the internal Rotation filters so we can store them in the database
+     *
+     * @return string the json-encoded array of filter objects
+     */
+    public function encodeCriteriaFilters() {
+        return json_encode($this->_filters);
+    }
+
+    /**
+     * Hydrate the internal Rotation filters with a decoded json string
+     *
+     * @param string $str the json-encoded array of filter objects
+     */
+    public function decodeCriteriaString($str) {
+        $this->_filters = json_decode($str);
     }
 
     /**
@@ -146,70 +171,58 @@ class RotationBuilder {
      * Fill in any remaining time in the rotation.
      */
     protected function _build() {
-        // Get a PropelObjectCollection of all suitable tracks so we only have to go to the database once
-        $suitableTracks = $this->_getSuitableTracks($this->_timeToFill)->getData();
-        while (!empty($suitableTracks) && $this->_timeToFill > 0) {
-            $track = $this->_pickSuitableTrack($suitableTracks, $key);
-            if (empty($track)) {
-                if (empty($suitableTracks) && $this->_timeToFill > $this->_trackLengthMin) {
-                    // TODO: make this more sophisticated - we can check the history and loosen our heuristics
-                    $suitableTracks = $this->_tracks;
-                    continue;
-                } else {
-                    break;
-                }
-            }
-            $this->_timeToFill -= Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
-            $this->_tracks[] = $track;
-            array_splice($suitableTracks, $key, 1);
+        $seed = $this->_rotation->getDbSeed();
+        if (!$seed) {
+            $seed = mt_rand() / mt_getrandmax();
         }
+
+        $this->_con = Propel::getConnection(CcPrefPeer::DATABASE_NAME);
+        $this->_con->beginTransaction();
+
+        try {
+            $this->_seedResultSet($seed);
+            $this->_tracks = $this->_getSuitableTracks()->getData();
+            $this->_con->commit();
+        } catch (Exception $e) {
+            $this->_con->rollBack();
+            throw $e;
+        }
+    }
+
+    protected function _seedResultSet($seed) {
+        $sql = "SELECT setseed(:seed)";
+        $st = $this->_con->prepare($sql);
+        $st->execute(array(":seed" => $seed));
     }
 
     /**
      *
-     * @param int $timeToFill
+     * @param boolean $excludeBlacklist
      *
      * @return PropelObjectCollection
      */
-    protected function _getSuitableTracks($timeToFill) {
-        $tracks = CcFilesQuery::create()
-            ->filterByDbLength($timeToFill, Criteria::LESS_EQUAL)
-            ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
+    protected function _getSuitableTracks($excludeBlacklist = true) {
+
+        // TODO: figure out how to alias virtual columns in subqueries!
+
+        $subquery = CcFilesQuery::create()
+            ->withColumn("SUM(CcFiles.length) OVER (ORDER BY random())", "total")
+            ->filterByDbLength(gmdate("H:i:s", $this->_timeToFill), Criteria::LESS_EQUAL)
+            ->_if($excludeBlacklist)
+                ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
+            ->_endif()
             ->filterByDbLength('00:00:00', Criteria::GREATER_THAN);
-        // TODO: can we avoid both storing a hypothetically infinite library in memory and
-        //       running n queries by getting a bounded result set?
-        //       (SUM of individual track lengths < rotation length)
         foreach ($this->_filters as $filter) {
-            $tracks->filterBy($filter->column, $filter->value, $filter->comparison);
+            $subquery->filterBy($filter->column, $filter->value, $filter->comparison);
         }
+
+        $tracks = CcFilesQuery::create()
+            ->withColumn("t.total", "total")
+            ->addSelectQuery($subquery, "t")
+            ->where("total > ?", $this->_timeToFill);
+
         // TODO: build and apply rotation heuristics (based on user input?)
         return $tracks->find();
-    }
-
-    /**
-     *
-     * @param CcFiles[] $suitableTracks
-     * @param int $key
-     *
-     * @return CcFiles
-     */
-    protected function _pickSuitableTrack(&$suitableTracks, &$key) {
-        $track = null;
-        while (!empty($suitableTracks)) {
-            $key = array_rand($suitableTracks);
-            $track = $suitableTracks[$key];
-            $trackLength = Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
-            if ($trackLength > $this->_timeToFill) {
-                array_splice($suitableTracks, $key, 1);
-                // $track = null;
-            } else {
-                if (empty($this->_trackLengthMin) || $this->_trackLengthMin > $trackLength) {
-                    $this->_trackLengthMin = $trackLength;
-                }
-                break;
-            }
-        }
-        return $track;
     }
 
     /**
