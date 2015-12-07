@@ -26,7 +26,8 @@ class ListenerStats extends BaseListenerStats
             ->setDbSessionDuration($data->session_duration)
             ->setDbMount($data->mount)
             ->setDbUserAgent($data->user_agent)
-            ->setDbReferrer($data->referrer);
+            ->setDbReferrer($data->referrer)
+            ->save();
 
 
         //TODO: fix this path
@@ -63,10 +64,12 @@ class ListenerStats extends BaseListenerStats
         $result = array();
 
         foreach($stats as $stat) {
-            if (!isset($result[$stat->getDbCountryIsoCode()])) {
-                $result[$stat->getDbCountryIsoCode()] = array();
+            if (!empty($stat["country_iso_code"])) {
+                if (!isset($result[$stat["country_iso_code"]])) {
+                    $result[$stat["country_iso_code"]] = array();
+                }
+                array_push($result[$stat["country_iso_code"]], $stat["city"]);
             }
-            array_push($result[$stat->getDbCountryIsoCode()], $stat->getDbIp());
         }
         return $result;
     }
