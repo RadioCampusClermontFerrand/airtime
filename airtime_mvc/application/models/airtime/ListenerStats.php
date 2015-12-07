@@ -67,8 +67,24 @@ class ListenerStats extends BaseListenerStats
             if (!empty($stat["country_iso_code"])) {
                 if (!isset($result[$stat["country_iso_code"]])) {
                     $result[$stat["country_iso_code"]] = array();
+                    $result[$stat["country_iso_code"]]["cities"] = array();
+                    $result[$stat["country_iso_code"]]["total"] = 1;
+                } else {
+                    $result[$stat["country_iso_code"]]["total"] += 1;
                 }
-                array_push($result[$stat["country_iso_code"]], $stat["city"]);
+
+                if (is_null($stat["city"])) {
+                    $stat["city"] = "unknown";
+                }
+
+
+
+                // listener count by city
+                if (!isset($result[$stat["country_iso_code"]]["cities"][$stat["city"]])) {
+                    $result[$stat["country_iso_code"]]["cities"][$stat["city"]] = 1;
+                } else {
+                    $result[$stat["country_iso_code"]]["cities"][$stat["city"]] += 1;
+                }
             }
         }
         return $result;
