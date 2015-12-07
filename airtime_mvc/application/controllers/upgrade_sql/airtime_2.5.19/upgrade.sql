@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS rotation (
 ALTER TABLE rotation ADD CONSTRAINT rotation_cc_playlist_fkey
   FOREIGN KEY (playlist)
   REFERENCES cc_playlist (id)
-
   ON DELETE SET NULL;
 
 INSERT INTO rotation (name, criteria) VALUES ('Airtime Mix', '[{"column":"length","comparison":">","value":"00:01:00"},{"column":"length","comparison":"<","value":"00:10:00"}]');

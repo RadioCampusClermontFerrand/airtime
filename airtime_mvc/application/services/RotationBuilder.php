@@ -56,6 +56,7 @@ class RotationBuilder {
         $this->_showInstance = $instance;
         $this->_timeToFill = is_null($length) ? static::$_DEFAULT_ROTATION_LENGTH : $length;
         $this->_rotation = RotationQuery::create()->findPk($instance->getDbRotation());
+        $this->_filters = json_decode($this->_rotation->getDbCriteria());
     }
 
     /**
@@ -72,44 +73,6 @@ class RotationBuilder {
         $filter->value      = $value;
         $filter->comparison = $comparison;
         $this->_filters[]   = $filter;
-        return $this;
-    }
-
-    /**
-     * Encode the internal Rotation filters so we can store them in the database
-     *
-     * @return string the json-encoded array of filter objects
-     */
-    public function encodeCriteriaFilters() {
-        return json_encode($this->_filters);
-    }
-
-    /**
-     * Hydrate the internal Rotation filters with a decoded json string
-     *
-     * @param string $str the json-encoded array of filter objects
-     */
-    public function decodeCriteriaString($str) {
-        $this->_filters = json_decode($str);
-    }
-
-    /**
-     * Include the given track in the rotation.
-     *
-     * @param CcFiles $track the track to include
-     *
-     * @return $this self, for chaining
-     *
-     * @throws Exception
-     */
-    public function includeTrack(CcFiles $track) {
-        $length = Application_Common_DateHelper::playlistTimeToSeconds($track->getDbLength());
-        if ($length < $this->_timeToFill) {
-            $this->_timeToFill -= $length;
-            $this->_tracks[] = $track;
-        } else {
-            throw new Exception("Couldn't include track; track length is greater than remaining rotation length");
-        }
         return $this;
     }
 
@@ -146,8 +109,8 @@ class RotationBuilder {
     }
 
     /**
-     * If there are currently scheduled tracks in the given instance, removes their
-     * cumulative duration from the total Playlist time and adjusts start time
+     * If there are currently scheduled tracks in the given instance, remove their
+     * cumulative duration from the total Playlist time and adjust start time
      * accordingly.
      */
     protected function _accountForScheduledTracks() {
@@ -179,16 +142,37 @@ class RotationBuilder {
         $this->_con = Propel::getConnection(CcPrefPeer::DATABASE_NAME);
         $this->_con->beginTransaction();
 
+        // We only want to take the history and blacklist into account on the first pass
+        // TODO: should this be incremental instead?
+        $firstPass = true;
         try {
-            $this->_seedResultSet($seed);
-            $this->_tracks = $this->_getSuitableTracks()->getData();
+            // Make multiple passes, where each pass is one instance of the Rotation, until the timebox is filled
+            while ($this->_timeToFill > 0) {
+                // Reset the database seed each pass so we get consistent ordering
+                $this->_seedResultSet($seed);
+                $suitableTracks = $this->_getSuitableTracks($firstPass);
+                if (empty($suitableTracks) && !$firstPass) { break; }
+                foreach ($suitableTracks as $track) {
+                    $this->_timeToFill -= Application_Common_DateHelper::calculateLengthInSeconds($track->getDbLength());
+                }
+                $this->_tracks = array_merge($this->_tracks, $suitableTracks);
+                $firstPass = false;
+            }
+            $query = $this->_buildQuery(false, gmdate('H:i:s', $this->_timeToFill));
+            $this->_tracks[] = $query->findOne();
             $this->_con->commit();
         } catch (Exception $e) {
+            Logging::error($e->getMessage());
             $this->_con->rollBack();
             throw $e;
         }
     }
 
+    /**
+     *
+     *
+     * @param $seed
+     */
     protected function _seedResultSet($seed) {
         $sql = "SELECT setseed(:seed)";
         $st = $this->_con->prepare($sql);
@@ -196,33 +180,58 @@ class RotationBuilder {
     }
 
     /**
+     * Get an array of all CcFiles rows that fit the Rotation criteria
      *
      * @param boolean $excludeBlacklist
      *
-     * @return PropelObjectCollection
+     * @return CcFiles[]
      */
     protected function _getSuitableTracks($excludeBlacklist = true) {
+        $subQuery = $this->_buildQuery($excludeBlacklist);
 
-        // TODO: figure out how to alias virtual columns in subqueries!
+        // Build the base query. We want to search exclusively on the subquery,
+        // so we do the select from the BasePeer.
+        $c = (new Criteria())
+            ->addSelectColumn("a.*")
+            ->addSelectQuery($subQuery, 'a')
+            // This is what ModelCriteria::where() is doing under the hood, but without the enforced binding
+            ->addUsingOperator("total", gmdate('H:i:s', $this->_timeToFill), Criteria::LESS_EQUAL);
+        $st = BasePeer::doSelect($c, $this->_con);
+        $rows = $st->fetchAll(PDO::FETCH_NUM);
 
-        $subquery = CcFilesQuery::create()
-            ->withColumn("SUM(CcFiles.length) OVER (ORDER BY random())", "total")
-            ->filterByDbLength(gmdate("H:i:s", $this->_timeToFill), Criteria::LESS_EQUAL)
-            ->_if($excludeBlacklist)
-                ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
-            ->_endif()
-            ->filterByDbLength('00:00:00', Criteria::GREATER_THAN);
-        foreach ($this->_filters as $filter) {
-            $subquery->filterBy($filter->column, $filter->value, $filter->comparison);
+        // There's probably a better way of doing this. PropelObjectCollection::fromArray() could work if we
+        // use FETCH_ASSOC and change the keys to their BasePeer::TYPE_PHPNAME counterparts, but that would
+        // probably be just as slow... -- Duncan
+        $data = array();
+        foreach ($rows as $row) {
+            $obj = new CcFiles();
+            $obj->hydrate($row);
+            $data[] = $obj;
         }
 
-        $tracks = CcFilesQuery::create()
-            ->withColumn("t.total", "total")
-            ->addSelectQuery($subquery, "t")
-            ->where("total > ?", $this->_timeToFill);
+        return $data;
+    }
 
-        // TODO: build and apply rotation heuristics (based on user input?)
-        return $tracks->find();
+    /**
+     *
+     * @param bool $excludeBlacklist
+     * @param string $greaterThanInterval
+     *
+     * @return CcFilesQuery
+     */
+    protected function _buildQuery($excludeBlacklist = true, $greaterThanInterval = '00:00:00') {
+        $subQuery = CcFilesQuery::create()
+            ->withColumn("SUM(length) OVER (ORDER BY random())", "total")
+            ->filterByDbLength(gmdate("H:i:s", $this->_timeToFill), Criteria::LESS_EQUAL)
+            ->_if($excludeBlacklist)
+            ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
+            ->_endif()
+            ->filterByDbLength($greaterThanInterval, Criteria::GREATER_THAN);
+        foreach ($this->_filters as $filter) {
+            $subQuery->filterBy($filter->column, $filter->value, $filter->comparison);
+        }
+
+        return $subQuery;
     }
 
     /**

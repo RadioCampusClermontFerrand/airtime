@@ -34,7 +34,7 @@ define('AIRTIME_COPYRIGHT_DATE' , '2010-2015');
 define('AIRTIME_REST_VERSION'   , '1.1');
 define('AIRTIME_API_VERSION'    , '1.1');
 // XXX: it's important that we update this every time we add an upgrade!
-define('AIRTIME_CODE_VERSION'   , '2.5.18');
+define('AIRTIME_CODE_VERSION'   , '2.5.19');
 
 // Defaults
 define('DEFAULT_LOGO_PLACEHOLDER', 1);
