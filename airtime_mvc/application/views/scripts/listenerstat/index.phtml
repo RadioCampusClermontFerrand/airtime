@@ -1,94 +1,49 @@
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script>
+<script type="text/javascript" src="https://www.google.com/jsapi?autoload=
+{'modules':[{'name':'visualization','version':'1','packages':
+['geomap']}]}"></script>
 
-    var country_map_data = {};
-    var api_data;
-    $.get("/rest/listener-stats/geolocation", {start: '2015-01-01 00:00:00', end: '2015-12-31 00:00:00'}, function(data) {
-        api_data = JSON.parse(data);
-        country_map_data = [];
-        country_map_data.push(["Country", "Listeners"]);
-        $.each(api_data, function(k,v) {
-            var num_listeners = v.total
-            var list = [k, num_listeners.toString()];
-            country_map_data.push(list);
-        });
-    });
-
-    google.load('visualization', '1', {'packages': ['geomap']});
-    google.setOnLoadCallback(drawWorldMap);
-
-    function drawWorldMap() {
-        var data = google.visualization.arrayToDataTable(country_map_data);
-
-        var options = {};
-        options['dataMode'] = 'regions';
-
-        var container = document.getElementById('regions_div');
-        var geomap = new google.visualization.GeoMap(container);
-
-        geomap.draw(data, options);
-
-        google.visualization.events.addListener(geomap,
-            'regionClick', function(e) {
-                $("#regions_div").hide();
-                drawCountryMap(e.region, api_data[e.region].cities);
-            });
-    }
-
-
-    function drawCountryMap(country_code, cities) {
-        var city_map_data = [];
-        city_map_data.push(["City", "Listeners"]);
-        $.each(cities, function(k,v) {
-            var num_listeners = v;
-            var list = [k, num_listeners.toString()];
-            city_map_data.push(list);
-        });
-        var data = google.visualization.arrayToDataTable(city_map_data);
-
-        var options = {};
-        options['region'] = country_code;
-        options['colors'] = [0xFF8747, 0xFFB581, 0xc06000]; //orange colors
-        options['dataMode'] = 'markers';
-
-        var container = document.getElementById('map_canvas');
-        var geomap = new google.visualization.GeoMap(container);
-        geomap.draw(data, options);
-    };
-
-
-</script>
-
-<div id="regions_div" style="width: 900px; height: 500px;"></div>
-<div id='map_canvas'></div>
-
-
-<div id="listenerstat_content" class="alpha-block padded">
-    <H2><?php echo _("Listeners")?></H2>
-    <div id="flot_placeholder" style="height:300px;margin:0px 50px 0px 50px"></div>
-    <div id="legend" style="width:600px;height:70px;margin:0px 50px 0px 50px"></div>
-    <div id="date_form" style="float:left; margin:0px 0px">
-        <h3 style="padding-left: 0px">Date Range</h3>
-        <?php echo $this->date_form; ?>
+<div id="stats-menu">
+    <a href="#map_world">Regional</a>
+    <a href="#listenerstat_content">Listener Count</a>
+</div>
+<div id="listener-stats">
+    <div class="stat">
+        <h2><?php echo _("Regional Stats"); ?></h2>
+        <a href="#" id="back-to-world-map-btn" style="display:none;">Back to world map</a>
+        <div id="map_world"></div>
+        <div id="map_country" style="display:none;"></div>
     </div>
-    <div id="errorStatus" style="float:right; width: 400px">
-        <h3><?php echo _("Stream Data Collection Status")?></h3>
-        <fieldset class="padded stream-setting-global">
-        <?php foreach ($this->errorStatus as $k=>$v) {?>
-        <div class='stream-status <?php echo ($v == 'OK')? 'status-good' : 'status-error' ?>'><p><?php echo $k?>: <?php echo $v?></p></div>
-        <?php }?>
-        </fieldset>
-    </div>
-    <div style="clear: both;"></div>
-    <?php $bandwidthUsage = Application_Model_Preference::getBandwidthLimitCounter(); ?>
-    <?php $bandwidthLimit = Application_Model_Preference::getBandwidthLimit(); ?>
-    <?php $percentInUse = sprintf("%01.1f%% ", $bandwidthUsage/$bandwidthLimit*100); ?>
-    <div id="bandwidth_usage">
-        <div style="padding-bottom: 2px;"><?php echo _("Monthly Listener Bandwidth Usage") ?></div>
-        <div class="bandwidth_usage_progress_bar"></div>
-        <div class="bandwidth_usage_percent_in_use"><?php echo $percentInUse .  _("in use") ?></div>
-        <div class="bandwidth_usage_used" style="width:<?php echo sprintf("%01.1f%%", min(100, $bandwidthUsage/$bandwidthLimit*100)) ?>;"></div>
 
-        <div style="margin-top: 17px; font-size: 12px;"><?php echo sprintf("%01.1fGB of %01.1fGB", $bandwidthUsage/pow(2, 30), $bandwidthLimit/pow(2, 30)); ?></div>
+    <div class="stat">
+        <div id="listenerstat_content" class="alpha-block padded">
+            <H2><?php echo _("Listeners")?></H2>
+            <div id="flot_placeholder" style="height:300px;margin:0px 50px 0px 50px"></div>
+            <div id="legend" style="width:600px;height:70px;margin:0px 50px 0px 50px"></div>
+            <div id="date_form" style="float:left; margin:0px 0px">
+                <h3 style="padding-left: 0px">Date Range</h3>
+                <?php echo $this->date_form; ?>
+            </div>
+            <div id="errorStatus" style="float:right; width: 400px">
+                <h3><?php echo _("Stream Data Collection Status")?></h3>
+                <fieldset class="padded stream-setting-global">
+                <?php foreach ($this->errorStatus as $k=>$v) {?>
+                <div class='stream-status <?php echo ($v == 'OK')? 'status-good' : 'status-error' ?>'><p><?php echo $k?>: <?php echo $v?></p></div>
+                <?php }?>
+                </fieldset>
+            </div>
+            <div style="clear: both;"></div>
+            <?php $bandwidthUsage = Application_Model_Preference::getBandwidthLimitCounter(); ?>
+            <?php $bandwidthLimit = Application_Model_Preference::getBandwidthLimit(); ?>
+            <?php $percentInUse = sprintf("%01.1f%% ", $bandwidthUsage/$bandwidthLimit*100); ?>
+            <div id="bandwidth_usage">
+                <div style="padding-bottom: 2px;"><?php echo _("Monthly Listener Bandwidth Usage") ?></div>
+                <div class="bandwidth_usage_progress_bar"></div>
+                <div class="bandwidth_usage_percent_in_use"><?php echo $percentInUse .  _("in use") ?></div>
+                <div class="bandwidth_usage_used" style="width:<?php echo sprintf("%01.1f%%", min(100, $bandwidthUsage/$bandwidthLimit*100)) ?>;"></div>
+
+                <div style="margin-top: 17px; font-size: 12px;"><?php echo sprintf("%01.1fGB of %01.1fGB", $bandwidthUsage/pow(2, 30), $bandwidthLimit/pow(2, 30)); ?></div>
+            </div>
+        </div>
     </div>
+
 </div>

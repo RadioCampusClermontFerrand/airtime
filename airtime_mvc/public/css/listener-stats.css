@@ -1,0 +1,31 @@
+embed {
+    max-width: 1000px;
+    width: 95%;
+    height: 400px;
+}
+
+#map_country, #map_world {
+    max-width: 1000px;
+    width: 95%;
+    height: 400px;
+}
+
+#stats-menu {
+    margin-bottom: 20px;
+    width: 100%;
+    height: 20px;
+}
+
+#stats-menu a, #back-to-world-map-btn {
+    text-decoration: underline;
+    font-size: 14px;
+    padding-right: 15px;
+    color: #fff;
+}
+
+.stat {
+    margin-bottom: 30px;
+}
+
+#listener-stats {
+}
