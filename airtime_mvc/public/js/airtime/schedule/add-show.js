@@ -5,8 +5,9 @@
 */
 
 function openAddShowForm(nowOrFuture) {
-     if($("#add-show-form").length == 1) {
-        if( ($("#add-show-form").css('display')=='none')) {
+    var form = $("#add-show-form");
+     if(form.length == 1) {
+        if( (form.css('display')=='none')) {
 
             if (nowOrFuture === true) //true means "now"
             {
@@ -265,6 +266,11 @@ function setAddShowEvents(form) {
         if ($(this).val() == "future") {
             $('#add_show_linked').removeProp('disabled');
         }
+    });
+
+    form.find('input:radio[name=add_show_rotation_scheduling]').click(function() {
+        form.find('input:radio[name=add_show_rotation_generate]').prop('disabled', $(this).val() == 0);
+        $('#add_show_rotations').prop('disabled', $(this).val() == 0);
     });
 
 
@@ -915,7 +921,11 @@ function setAddShowEvents(form) {
                 loadingIcon.hide();
         });
     }
-    
+
+    var val = form.find('input:radio[name=add_show_rotation_scheduling]:checked').val();
+    form.find('input:radio[name=add_show_rotation_generate]').prop('disabled', val == 0);
+    $('#add_show_rotations').prop('disabled', val == 0);
+
     // Since Zend's setAttrib won't apply through the wrapper, set accept=image/* here
     $("#add_show_logo").prop("accept", "image/*");
 

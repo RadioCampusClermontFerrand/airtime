@@ -629,6 +629,7 @@ class ScheduleController extends Zend_Controller_Action
         $this->view->when = $forms["when"];
         $this->view->repeats = $forms["repeats"];
         $this->view->live = $forms["live"];
+        $this->view->rotation = $forms["rotation"];
         $this->view->rr = $forms["record"];
         $this->view->absoluteRebroadcast = $forms["abs_rebroadcast"];
         $this->view->rebroadcast = $forms["rebroadcast"];

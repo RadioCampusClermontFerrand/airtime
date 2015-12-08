@@ -13,11 +13,11 @@ var AIRTIME = (function(AIRTIME){
 var serverTimezoneOffset = 0;
 
 function closeDialogCalendar(event, ui) {
-    
+
     $el = $(this);
     $el.dialog('destroy');
     $el.remove();
-    
+
     //need to refetch the events to update scheduled status.
     $("#schedule_calendar").fullCalendar( 'refetchEvents' );
 }
@@ -130,6 +130,7 @@ function highlightMediaTypeSelector(dialog) {
 
     selected.parent().addClass("selected");
     $("#library_filter").text(selected.text());
+    oTable.fnDraw();
 
     // Slightly hacky way of triggering the click event when it's outside of the anchor text
     dialog.find(".media_type_selector").on("click", function() {

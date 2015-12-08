@@ -16,7 +16,6 @@ class Application_Form_AddShowWhen extends Zend_Form_SubForm
             _("'%value%' does not fit the time format 'HH:mm'"));
 
 
-        // Add start date element
         $startNow = new Zend_Form_Element_Radio('add_show_start_now');
         $startNow->setRequired(false)
             ->setLabel(_('Start Time:'))

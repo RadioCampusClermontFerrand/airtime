@@ -19,15 +19,16 @@ class Application_Service_ShowFormService
      */
     public function createShowForms()
     {
-        $formWhat    = new Application_Form_AddShowWhat();
-        $formWho     = new Application_Form_AddShowWho();
-        $formWhen    = new Application_Form_AddShowWhen();
-        $formRepeats = new Application_Form_AddShowRepeats();
-        $formStyle   = new Application_Form_AddShowStyle();
-        $formLive    = new Application_Form_AddShowLiveStream();
-        $formRecord = new Application_Form_AddShowRR();
+        $formWhat                = new Application_Form_AddShowWhat();
+        $formWho                 = new Application_Form_AddShowWho();
+        $formWhen                = new Application_Form_AddShowWhen();
+        $formRepeats             = new Application_Form_AddShowRepeats();
+        $formStyle               = new Application_Form_AddShowStyle();
+        $formLive                = new Application_Form_AddShowLiveStream();
+        $formRotation            = new Application_Form_AddShowRotation();
+        $formRecord              = new Application_Form_AddShowRR();
         $formAbsoluteRebroadcast = new Application_Form_AddShowAbsoluteRebroadcastDates();
-        $formRebroadcast = new Application_Form_AddShowRebroadcastDates();
+        $formRebroadcast         = new Application_Form_AddShowRebroadcastDates();
 
         $formWhat->removeDecorator('DtDdWrapper');
         $formWho->removeDecorator('DtDdWrapper');
@@ -35,6 +36,7 @@ class Application_Service_ShowFormService
         $formRepeats->removeDecorator('DtDdWrapper');
         $formStyle->removeDecorator('DtDdWrapper');
         $formLive->removeDecorator('DtDdWrapper');
+        $formRotation->removeDecorator('DtDdWrapper');
         $formRecord->removeDecorator('DtDdWrapper');
         $formAbsoluteRebroadcast->removeDecorator('DtDdWrapper');
         $formRebroadcast->removeDecorator('DtDdWrapper');
@@ -46,6 +48,7 @@ class Application_Service_ShowFormService
         $forms["repeats"] = $formRepeats;
         $forms["style"] = $formStyle;
         $forms["live"] = $formLive;
+        $forms["rotation"] = $formRotation;
         $forms["record"] = $formRecord;
         $forms["abs_rebroadcast"] = $formAbsoluteRebroadcast;
         $forms["rebroadcast"] = $formRebroadcast;
@@ -99,6 +102,7 @@ class Application_Service_ShowFormService
         // Hide the show logo fields when users are editing a single instance
         $forms["style"]->hideShowLogo();
         $forms["live"]->disable();
+        $forms["rotation"]->disable();
         $forms["record"]->disable();
         $forms["rebroadcast"]->disable();
         $forms["abs_rebroadcast"]->disable();
@@ -120,6 +124,7 @@ class Application_Service_ShowFormService
         $this->populateFormWho($forms["who"]);
         $this->populateFormStyle($forms["style"]);
         $this->populateFormLive($forms["live"]);
+        $this->populateFormRotation($forms["rotation"]);
         $this->populateFormRecord($forms["record"]);
         $this->populateFormRebroadcastRelative($forms["rebroadcast"]);
         $this->populateFormRebroadcastAbsolute($forms["abs_rebroadcast"]);
@@ -374,6 +379,19 @@ class Application_Service_ShowFormService
                 "custom_password" => $this->ccShow->getDbLiveStreamPass()));
     }
 
+    /**
+     * Populate the Rotation form
+     *
+     * @param Zend_Form_Subform $form
+     */
+    private function populateFormRotation($form) {
+        $form->populate(
+            array(
+                // TODO
+            )
+        );
+    }
+
     private function populateFormRecord($form)
     {
         $form->populate(
@@ -502,10 +520,13 @@ class Application_Service_ShowFormService
     public function validateShowForms($forms, $formData, $validateStartDate = true,
         $originalStartDate=null, $editShow=false, $instanceId=null)
     {
-        $what = $forms["what"]->isValid($formData);
-        $live = $forms["live"]->isValid($formData);
-        $record = $forms["record"]->isValid($formData);
-        $who = $forms["who"]->isValid($formData);
+        $valid = true;
+
+        $valid = $valid && $forms["what"]->isValid($formData)
+            && $forms["live"]->isValid($formData)
+            && $forms["rotation"]->isValid($formData)
+            && $forms["record"]->isValid($formData)
+            && $forms["who"]->isValid($formData);
         
         /*
          * hack to prevent validating the file upload field since it
@@ -513,31 +534,28 @@ class Application_Service_ShowFormService
          */
         $upload = $forms["style"]->getElement("add_show_logo");
         $forms["style"]->removeElement("add_show_logo");
-        
-        $style = $forms["style"]->isValid($formData);
+
+        $valid = $valid && $forms["style"]->isValid($formData);
         
         // re-add the upload element
         $forms["style"]->addElement($upload);
-        
-        $when = $forms["when"]->isWhenFormValid($formData, $validateStartDate,
+
+        $valid = $valid && $forms["when"]->isWhenFormValid($formData, $validateStartDate,
             $originalStartDate, $editShow, $instanceId);
 
-        $repeats = true;
         if ($formData["add_show_repeats"]) {
-            $repeats = $forms["repeats"]->isValid($formData);
+            $valid = $valid && $forms["repeats"]->isValid($formData);
 
             /*
              * Make the absolute rebroadcast form valid since
              * it does not get used if the show is repeating
              */
             $forms["abs_rebroadcast"]->reset();
-            $absRebroadcast = true;
 
-            $rebroadcast = true;
             if (isset($formData["add_show_rebroadcast"]) && $formData["add_show_rebroadcast"]) {
                 $formData["add_show_duration"] = Application_Service_ShowService::formatShowDuration(
                     $formData["add_show_duration"]);
-                $rebroadcast = $forms["rebroadcast"]->isValid($formData);
+                $valid = $valid && $forms["rebroadcast"]->isValid($formData);
             }
         } else {
             /*
@@ -546,18 +564,15 @@ class Application_Service_ShowFormService
              * Instead, we use the absolute rebroadcast form
              */
             $forms["rebroadcast"]->reset();
-            $rebroadcast = true;
 
-            $absRebroadcast = true;
             if (isset($formData["add_show_rebroadcast"]) && $formData["add_show_rebroadcast"]) {
                 $formData["add_show_duration"] = Application_Service_ShowService::formatShowDuration(
                     $formData["add_show_duration"]);
-                $absRebroadcast = $forms["abs_rebroadcast"]->isValid($formData);
+                $valid = $valid && $forms["abs_rebroadcast"]->isValid($formData);
             }
         }
 
-        return ($what && $live && $record && $who && $style && $when &&
-            $repeats && $absRebroadcast && $rebroadcast);
+        return $valid;
     }
     
     public function calculateDuration($start, $end, $timezone)
