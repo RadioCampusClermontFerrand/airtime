@@ -51,11 +51,11 @@ class ListenerStats extends BaseListenerStats
     {
         if(is_null($start) && is_null($end)) {
             $stats = ListenerStatsQuery::create()
-                ->select(array('ip', 'city', 'country_iso_code'))
+                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
                 ->find();
         } else {
             $stats = ListenerStatsQuery::create()
-                ->select(array('ip', 'city', 'country_iso_code'))
+                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
                 ->filterByDbDisconnectTimestamp($start, Criteria::GREATER_EQUAL)
                 ->filterByDbDisconnectTimestamp($end, Criteria::LESS_THAN)
                 ->find();
@@ -69,6 +69,7 @@ class ListenerStats extends BaseListenerStats
                     $result[$stat["country_iso_code"]] = array();
                     $result[$stat["country_iso_code"]]["cities"] = array();
                     $result[$stat["country_iso_code"]]["total"] = 1;
+                    $result[$stat["country_iso_code"]]["name"] = $stat["country_name"];
                 } else {
                     $result[$stat["country_iso_code"]]["total"] += 1;
                 }
