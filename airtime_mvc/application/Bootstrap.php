@@ -50,6 +50,7 @@ require_once "Publish.php";
 
 /* SAAS-1260 - Rotation */
 require_once __DIR__."/services/RotationBuilder.php";
+require_once __DIR__."/services/PlaylistRotationBuilder.php";
 
 /* Factories */
 require_once __DIR__.'/services/CeleryServiceFactory.php';

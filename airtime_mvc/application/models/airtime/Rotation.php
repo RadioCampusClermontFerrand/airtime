@@ -16,19 +16,4 @@
 class Rotation extends BaseRotation
 {
 
-    /**
-     * TODO
-     *
-     * @param $v
-     * @return $this
-     */
-    public function setDbCriteria($v) {
-        if ($this->name !== $v) {
-            $this->name = $v;
-            $this->modifiedColumns[] = RotationPeer::NAME;
-        }
-
-        return $this;
-    }
-
 }

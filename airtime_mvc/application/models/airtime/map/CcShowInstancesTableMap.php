@@ -53,6 +53,7 @@ class CcShowInstancesTableMap extends TableMap
         $this->addColumn('last_scheduled', 'DbLastScheduled', 'TIMESTAMP', false, null, null);
         $this->addColumn('modified_instance', 'DbModifiedInstance', 'BOOLEAN', true, null, false);
         $this->addForeignKey('rotation', 'DbRotation', 'INTEGER', 'rotation', 'id', false, null, null);
+        $this->addColumn('rotation_scheduled', 'DbRotationScheduled', 'BOOLEAN', false, null, false);
         // validators
     } // initialize()
 

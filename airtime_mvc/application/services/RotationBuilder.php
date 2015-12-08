@@ -51,7 +51,7 @@ class RotationBuilder {
      * @param CcShowInstances $instance show instance to schedule the Rotation in
      * @param int|null        [$length] optional override for the default Rotation length
      */
-    public function __construct($instance, $length = null) {
+    public function __construct(CcShowInstances $instance, $length = null) {
         $this->_history = $this->_getHistory();
         $this->_showInstance = $instance;
         $this->_timeToFill = is_null($length) ? static::$_DEFAULT_ROTATION_LENGTH : $length;
@@ -60,10 +60,13 @@ class RotationBuilder {
     }
 
     /**
+     * Add a criteria filter to be used to narrow track selection
      *
-     * @param string $column
-     * @param mixed $value
-     * @param string $comparison
+     * @param string $column        the database column the filter is applied to
+     * @param mixed  $value         the filter value
+     * @param string [$comparison]  a Criteria comparison type
+     *
+     * @see Criteria
      *
      * @return $this self, for chaining
      */
@@ -87,10 +90,8 @@ class RotationBuilder {
         $this->_accountForScheduledTracks();
 
         $this->_build();
-        $result = true;
         $after = $this->_lastScheduled ? $this->_lastScheduled : 0;
-        $result = $result && $this->_addToSchedule($after);
-        return $result;
+        return $this->_addToSchedule($after);
     }
 
     /**
@@ -158,8 +159,14 @@ class RotationBuilder {
                 $this->_tracks = array_merge($this->_tracks, $suitableTracks);
                 $firstPass = false;
             }
-            $query = $this->_buildQuery(false, gmdate('H:i:s', $this->_timeToFill));
-            $this->_tracks[] = $query->findOne();
+            // If we still have a gap at the end of the show, find one more track long enough to fill it
+            if ($this->_timeToFill > 0) {
+                $query = $this->_buildQuery(false, gmdate('H:i:s', $this->_timeToFill));
+                $track = $query->findOne();
+                if (!empty($track)) {
+                    $this->_tracks[] = $track;
+                }
+            }
             $this->_con->commit();
         } catch (Exception $e) {
             Logging::error($e->getMessage());
@@ -169,7 +176,8 @@ class RotationBuilder {
     }
 
     /**
-     *
+     * Seed the database's random number generator so we get the same set of tracks
+     * for each iteration of the Rotation.
      *
      * @param $seed
      */
@@ -182,7 +190,7 @@ class RotationBuilder {
     /**
      * Get an array of all CcFiles rows that fit the Rotation criteria
      *
-     * @param boolean $excludeBlacklist
+     * @param boolean [$excludeBlacklist]
      *
      * @return CcFiles[]
      */
@@ -213,28 +221,32 @@ class RotationBuilder {
     }
 
     /**
+     * Build a CcFilesQuery object with the internal Rotation filters
      *
-     * @param bool $excludeBlacklist
-     * @param string $greaterThanInterval
+     * @param bool   [$excludeBlacklist]    if false, don't remove tracks from contention based on
+     *                                      the history or the blacklist. Defaults to true
+     * @param string [$greaterThanInterval] only find tracks greater than this interval. Defaults to zero
      *
      * @return CcFilesQuery
      */
     protected function _buildQuery($excludeBlacklist = true, $greaterThanInterval = '00:00:00') {
-        $subQuery = CcFilesQuery::create()
+        $query = CcFilesQuery::create()
             ->withColumn("SUM(length) OVER (ORDER BY random())", "total")
             ->filterByDbLength(gmdate("H:i:s", $this->_timeToFill), Criteria::LESS_EQUAL)
             ->_if($excludeBlacklist)
-            ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
+                ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
             ->_endif()
             ->filterByDbLength($greaterThanInterval, Criteria::GREATER_THAN);
         foreach ($this->_filters as $filter) {
-            $subQuery->filterBy($filter->column, $filter->value, $filter->comparison);
+            $query->filterBy($filter->column, $filter->value, $filter->comparison);
         }
 
-        return $subQuery;
+        return $query;
     }
 
     /**
+     * Combine tracks in recent history, tracks already added to the Rotation, and any
+     * blacklisted tracks to create an exclusion array when finding suitable tracks.
      *
      * @return array
      */
@@ -247,6 +259,8 @@ class RotationBuilder {
     }
 
     /**
+     * Find any tracks that ended in the past $_HISTORY_LOOKUP_SECONDS seconds and add
+     * them to the internal history array so we can remove them from contention
      *
      * @return PropelObjectCollection
      */
@@ -260,11 +274,12 @@ class RotationBuilder {
     }
 
     /**
+     * Add all tracks in the internal tracks array to the schedule
      *
-     * @param int $scheduleAfter track to schedule the Rotation after,
-     *                           defaults to the beginning of the show
+     * @param int [$scheduleAfter] track to schedule the Rotation after,
+     *                             defaults to the beginning of the show
      *
-     * @return boolean
+     * @return boolean true if the operation succeeded, otherwise false
      */
     protected function _addToSchedule($scheduleAfter = 0) {
         if (!Zend_Session::isStarted()) Zend_Session::start();

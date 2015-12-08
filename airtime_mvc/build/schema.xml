@@ -175,6 +175,7 @@
     <column name="modified_instance" phpName="DbModifiedInstance" type="BOOLEAN" required="true" defaultValue="false" />
     <!-- SAAS-1260 -->
     <column name="rotation" phpName="DbRotation" type="INTEGER" required="false"/>
+    <column name="rotation_scheduled" phpName="DbRotationScheduled" type="BOOLEAN" required="false" defaultValue="false" />
 	<foreign-key foreignTable="cc_show" name="cc_show_fkey" onDelete="CASCADE">
       <reference local="show_id" foreign="id"/>
     </foreign-key>

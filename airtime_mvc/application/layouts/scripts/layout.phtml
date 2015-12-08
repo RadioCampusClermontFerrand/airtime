@@ -77,8 +77,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     <div class="media_type_selector top-link" data-selection-id="<?php echo MediaType::getDefault(); ?>">
         <a href="<?php echo Application_Common_OsPath::getBaseDir() . 'showbuilder#' ?>">
-            <i class='icon-home icon-white'></i>
-            <?php echo _("Dashboard") ?>
+            <i class='icon-home icon-white'></i><?php echo _("Dashboard") ?>
         </a>
     </div>
     <?php $subnavPrefix = "/showbuilder"; require_once APPLICATION_PATH . "views/scripts/partialviews/dashboard-sub-nav.php"; ?>

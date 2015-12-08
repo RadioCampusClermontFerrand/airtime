@@ -24,13 +24,13 @@ abstract class BaseCcShowInstancesPeer
     const TM_CLASS = 'CcShowInstancesTableMap';
 
     /** The total number of columns. */
-    const NUM_COLUMNS = 14;
+    const NUM_COLUMNS = 15;
 
     /** The number of lazy-loaded columns. */
     const NUM_LAZY_LOAD_COLUMNS = 0;
 
     /** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-    const NUM_HYDRATE_COLUMNS = 14;
+    const NUM_HYDRATE_COLUMNS = 15;
 
     /** the column name for the id field */
     const ID = 'cc_show_instances.id';
@@ -74,6 +74,9 @@ abstract class BaseCcShowInstancesPeer
     /** the column name for the rotation field */
     const ROTATION = 'cc_show_instances.rotation';
 
+    /** the column name for the rotation_scheduled field */
+    const ROTATION_SCHEDULED = 'cc_show_instances.rotation_scheduled';
+
     /** The default string format for model objects of the related table **/
     const DEFAULT_STRING_FORMAT = 'YAML';
 
@@ -93,12 +96,12 @@ abstract class BaseCcShowInstancesPeer
      * e.g. CcShowInstancesPeer::$fieldNames[CcShowInstancesPeer::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbDescription', 'DbStarts', 'DbEnds', 'DbShowId', 'DbRecord', 'DbRebroadcast', 'DbOriginalShow', 'DbRecordedFile', 'DbTimeFilled', 'DbCreated', 'DbLastScheduled', 'DbModifiedInstance', 'DbRotation', ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbDescription', 'dbStarts', 'dbEnds', 'dbShowId', 'dbRecord', 'dbRebroadcast', 'dbOriginalShow', 'dbRecordedFile', 'dbTimeFilled', 'dbCreated', 'dbLastScheduled', 'dbModifiedInstance', 'dbRotation', ),
-        BasePeer::TYPE_COLNAME => array (CcShowInstancesPeer::ID, CcShowInstancesPeer::DESCRIPTION, CcShowInstancesPeer::STARTS, CcShowInstancesPeer::ENDS, CcShowInstancesPeer::SHOW_ID, CcShowInstancesPeer::RECORD, CcShowInstancesPeer::REBROADCAST, CcShowInstancesPeer::INSTANCE_ID, CcShowInstancesPeer::FILE_ID, CcShowInstancesPeer::TIME_FILLED, CcShowInstancesPeer::CREATED, CcShowInstancesPeer::LAST_SCHEDULED, CcShowInstancesPeer::MODIFIED_INSTANCE, CcShowInstancesPeer::ROTATION, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'DESCRIPTION', 'STARTS', 'ENDS', 'SHOW_ID', 'RECORD', 'REBROADCAST', 'INSTANCE_ID', 'FILE_ID', 'TIME_FILLED', 'CREATED', 'LAST_SCHEDULED', 'MODIFIED_INSTANCE', 'ROTATION', ),
-        BasePeer::TYPE_FIELDNAME => array ('id', 'description', 'starts', 'ends', 'show_id', 'record', 'rebroadcast', 'instance_id', 'file_id', 'time_filled', 'created', 'last_scheduled', 'modified_instance', 'rotation', ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, )
+        BasePeer::TYPE_PHPNAME => array ('DbId', 'DbDescription', 'DbStarts', 'DbEnds', 'DbShowId', 'DbRecord', 'DbRebroadcast', 'DbOriginalShow', 'DbRecordedFile', 'DbTimeFilled', 'DbCreated', 'DbLastScheduled', 'DbModifiedInstance', 'DbRotation', 'DbRotationScheduled', ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId', 'dbDescription', 'dbStarts', 'dbEnds', 'dbShowId', 'dbRecord', 'dbRebroadcast', 'dbOriginalShow', 'dbRecordedFile', 'dbTimeFilled', 'dbCreated', 'dbLastScheduled', 'dbModifiedInstance', 'dbRotation', 'dbRotationScheduled', ),
+        BasePeer::TYPE_COLNAME => array (CcShowInstancesPeer::ID, CcShowInstancesPeer::DESCRIPTION, CcShowInstancesPeer::STARTS, CcShowInstancesPeer::ENDS, CcShowInstancesPeer::SHOW_ID, CcShowInstancesPeer::RECORD, CcShowInstancesPeer::REBROADCAST, CcShowInstancesPeer::INSTANCE_ID, CcShowInstancesPeer::FILE_ID, CcShowInstancesPeer::TIME_FILLED, CcShowInstancesPeer::CREATED, CcShowInstancesPeer::LAST_SCHEDULED, CcShowInstancesPeer::MODIFIED_INSTANCE, CcShowInstancesPeer::ROTATION, CcShowInstancesPeer::ROTATION_SCHEDULED, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID', 'DESCRIPTION', 'STARTS', 'ENDS', 'SHOW_ID', 'RECORD', 'REBROADCAST', 'INSTANCE_ID', 'FILE_ID', 'TIME_FILLED', 'CREATED', 'LAST_SCHEDULED', 'MODIFIED_INSTANCE', 'ROTATION', 'ROTATION_SCHEDULED', ),
+        BasePeer::TYPE_FIELDNAME => array ('id', 'description', 'starts', 'ends', 'show_id', 'record', 'rebroadcast', 'instance_id', 'file_id', 'time_filled', 'created', 'last_scheduled', 'modified_instance', 'rotation', 'rotation_scheduled', ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, )
     );
 
     /**
@@ -108,12 +111,12 @@ abstract class BaseCcShowInstancesPeer
      * e.g. CcShowInstancesPeer::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbDescription' => 1, 'DbStarts' => 2, 'DbEnds' => 3, 'DbShowId' => 4, 'DbRecord' => 5, 'DbRebroadcast' => 6, 'DbOriginalShow' => 7, 'DbRecordedFile' => 8, 'DbTimeFilled' => 9, 'DbCreated' => 10, 'DbLastScheduled' => 11, 'DbModifiedInstance' => 12, 'DbRotation' => 13, ),
-        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbDescription' => 1, 'dbStarts' => 2, 'dbEnds' => 3, 'dbShowId' => 4, 'dbRecord' => 5, 'dbRebroadcast' => 6, 'dbOriginalShow' => 7, 'dbRecordedFile' => 8, 'dbTimeFilled' => 9, 'dbCreated' => 10, 'dbLastScheduled' => 11, 'dbModifiedInstance' => 12, 'dbRotation' => 13, ),
-        BasePeer::TYPE_COLNAME => array (CcShowInstancesPeer::ID => 0, CcShowInstancesPeer::DESCRIPTION => 1, CcShowInstancesPeer::STARTS => 2, CcShowInstancesPeer::ENDS => 3, CcShowInstancesPeer::SHOW_ID => 4, CcShowInstancesPeer::RECORD => 5, CcShowInstancesPeer::REBROADCAST => 6, CcShowInstancesPeer::INSTANCE_ID => 7, CcShowInstancesPeer::FILE_ID => 8, CcShowInstancesPeer::TIME_FILLED => 9, CcShowInstancesPeer::CREATED => 10, CcShowInstancesPeer::LAST_SCHEDULED => 11, CcShowInstancesPeer::MODIFIED_INSTANCE => 12, CcShowInstancesPeer::ROTATION => 13, ),
-        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'DESCRIPTION' => 1, 'STARTS' => 2, 'ENDS' => 3, 'SHOW_ID' => 4, 'RECORD' => 5, 'REBROADCAST' => 6, 'INSTANCE_ID' => 7, 'FILE_ID' => 8, 'TIME_FILLED' => 9, 'CREATED' => 10, 'LAST_SCHEDULED' => 11, 'MODIFIED_INSTANCE' => 12, 'ROTATION' => 13, ),
-        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'description' => 1, 'starts' => 2, 'ends' => 3, 'show_id' => 4, 'record' => 5, 'rebroadcast' => 6, 'instance_id' => 7, 'file_id' => 8, 'time_filled' => 9, 'created' => 10, 'last_scheduled' => 11, 'modified_instance' => 12, 'rotation' => 13, ),
-        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, )
+        BasePeer::TYPE_PHPNAME => array ('DbId' => 0, 'DbDescription' => 1, 'DbStarts' => 2, 'DbEnds' => 3, 'DbShowId' => 4, 'DbRecord' => 5, 'DbRebroadcast' => 6, 'DbOriginalShow' => 7, 'DbRecordedFile' => 8, 'DbTimeFilled' => 9, 'DbCreated' => 10, 'DbLastScheduled' => 11, 'DbModifiedInstance' => 12, 'DbRotation' => 13, 'DbRotationScheduled' => 14, ),
+        BasePeer::TYPE_STUDLYPHPNAME => array ('dbId' => 0, 'dbDescription' => 1, 'dbStarts' => 2, 'dbEnds' => 3, 'dbShowId' => 4, 'dbRecord' => 5, 'dbRebroadcast' => 6, 'dbOriginalShow' => 7, 'dbRecordedFile' => 8, 'dbTimeFilled' => 9, 'dbCreated' => 10, 'dbLastScheduled' => 11, 'dbModifiedInstance' => 12, 'dbRotation' => 13, 'dbRotationScheduled' => 14, ),
+        BasePeer::TYPE_COLNAME => array (CcShowInstancesPeer::ID => 0, CcShowInstancesPeer::DESCRIPTION => 1, CcShowInstancesPeer::STARTS => 2, CcShowInstancesPeer::ENDS => 3, CcShowInstancesPeer::SHOW_ID => 4, CcShowInstancesPeer::RECORD => 5, CcShowInstancesPeer::REBROADCAST => 6, CcShowInstancesPeer::INSTANCE_ID => 7, CcShowInstancesPeer::FILE_ID => 8, CcShowInstancesPeer::TIME_FILLED => 9, CcShowInstancesPeer::CREATED => 10, CcShowInstancesPeer::LAST_SCHEDULED => 11, CcShowInstancesPeer::MODIFIED_INSTANCE => 12, CcShowInstancesPeer::ROTATION => 13, CcShowInstancesPeer::ROTATION_SCHEDULED => 14, ),
+        BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'DESCRIPTION' => 1, 'STARTS' => 2, 'ENDS' => 3, 'SHOW_ID' => 4, 'RECORD' => 5, 'REBROADCAST' => 6, 'INSTANCE_ID' => 7, 'FILE_ID' => 8, 'TIME_FILLED' => 9, 'CREATED' => 10, 'LAST_SCHEDULED' => 11, 'MODIFIED_INSTANCE' => 12, 'ROTATION' => 13, 'ROTATION_SCHEDULED' => 14, ),
+        BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'description' => 1, 'starts' => 2, 'ends' => 3, 'show_id' => 4, 'record' => 5, 'rebroadcast' => 6, 'instance_id' => 7, 'file_id' => 8, 'time_filled' => 9, 'created' => 10, 'last_scheduled' => 11, 'modified_instance' => 12, 'rotation' => 13, 'rotation_scheduled' => 14, ),
+        BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, )
     );
 
     /**
@@ -201,6 +204,7 @@ abstract class BaseCcShowInstancesPeer
             $criteria->addSelectColumn(CcShowInstancesPeer::LAST_SCHEDULED);
             $criteria->addSelectColumn(CcShowInstancesPeer::MODIFIED_INSTANCE);
             $criteria->addSelectColumn(CcShowInstancesPeer::ROTATION);
+            $criteria->addSelectColumn(CcShowInstancesPeer::ROTATION_SCHEDULED);
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.description');
@@ -216,6 +220,7 @@ abstract class BaseCcShowInstancesPeer
             $criteria->addSelectColumn($alias . '.last_scheduled');
             $criteria->addSelectColumn($alias . '.modified_instance');
             $criteria->addSelectColumn($alias . '.rotation');
+            $criteria->addSelectColumn($alias . '.rotation_scheduled');
         }
     }
 

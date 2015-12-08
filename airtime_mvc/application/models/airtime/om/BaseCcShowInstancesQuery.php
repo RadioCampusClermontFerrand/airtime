@@ -20,6 +20,7 @@
  * @method CcShowInstancesQuery orderByDbLastScheduled($order = Criteria::ASC) Order by the last_scheduled column
  * @method CcShowInstancesQuery orderByDbModifiedInstance($order = Criteria::ASC) Order by the modified_instance column
  * @method CcShowInstancesQuery orderByDbRotation($order = Criteria::ASC) Order by the rotation column
+ * @method CcShowInstancesQuery orderByDbRotationScheduled($order = Criteria::ASC) Order by the rotation_scheduled column
  *
  * @method CcShowInstancesQuery groupByDbId() Group by the id column
  * @method CcShowInstancesQuery groupByDbDescription() Group by the description column
@@ -35,6 +36,7 @@
  * @method CcShowInstancesQuery groupByDbLastScheduled() Group by the last_scheduled column
  * @method CcShowInstancesQuery groupByDbModifiedInstance() Group by the modified_instance column
  * @method CcShowInstancesQuery groupByDbRotation() Group by the rotation column
+ * @method CcShowInstancesQuery groupByDbRotationScheduled() Group by the rotation_scheduled column
  *
  * @method CcShowInstancesQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
  * @method CcShowInstancesQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
@@ -84,6 +86,7 @@
  * @method CcShowInstances findOneByDbLastScheduled(string $last_scheduled) Return the first CcShowInstances filtered by the last_scheduled column
  * @method CcShowInstances findOneByDbModifiedInstance(boolean $modified_instance) Return the first CcShowInstances filtered by the modified_instance column
  * @method CcShowInstances findOneByDbRotation(int $rotation) Return the first CcShowInstances filtered by the rotation column
+ * @method CcShowInstances findOneByDbRotationScheduled(boolean $rotation_scheduled) Return the first CcShowInstances filtered by the rotation_scheduled column
  *
  * @method array findByDbId(int $id) Return CcShowInstances objects filtered by the id column
  * @method array findByDbDescription(string $description) Return CcShowInstances objects filtered by the description column
@@ -99,6 +102,7 @@
  * @method array findByDbLastScheduled(string $last_scheduled) Return CcShowInstances objects filtered by the last_scheduled column
  * @method array findByDbModifiedInstance(boolean $modified_instance) Return CcShowInstances objects filtered by the modified_instance column
  * @method array findByDbRotation(int $rotation) Return CcShowInstances objects filtered by the rotation column
+ * @method array findByDbRotationScheduled(boolean $rotation_scheduled) Return CcShowInstances objects filtered by the rotation_scheduled column
  *
  * @package    propel.generator.airtime.om
  */
@@ -206,7 +210,7 @@ abstract class BaseCcShowInstancesQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT "id", "description", "starts", "ends", "show_id", "record", "rebroadcast", "instance_id", "file_id", "time_filled", "created", "last_scheduled", "modified_instance", "rotation" FROM "cc_show_instances" WHERE "id" = :p0';
+        $sql = 'SELECT "id", "description", "starts", "ends", "show_id", "record", "rebroadcast", "instance_id", "file_id", "time_filled", "created", "last_scheduled", "modified_instance", "rotation", "rotation_scheduled" FROM "cc_show_instances" WHERE "id" = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -852,6 +856,33 @@ abstract class BaseCcShowInstancesQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(CcShowInstancesPeer::ROTATION, $dbRotation, $comparison);
+    }
+
+    /**
+     * Filter the query on the rotation_scheduled column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDbRotationScheduled(true); // WHERE rotation_scheduled = true
+     * $query->filterByDbRotationScheduled('yes'); // WHERE rotation_scheduled = true
+     * </code>
+     *
+     * @param     boolean|string $dbRotationScheduled The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return CcShowInstancesQuery The current query, for fluid interface
+     */
+    public function filterByDbRotationScheduled($dbRotationScheduled = null, $comparison = null)
+    {
+        if (is_string($dbRotationScheduled)) {
+            $dbRotationScheduled = in_array(strtolower($dbRotationScheduled), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+
+        return $this->addUsingAlias(CcShowInstancesPeer::ROTATION_SCHEDULED, $dbRotationScheduled, $comparison);
     }
 
     /**

@@ -185,6 +185,7 @@ CREATE TABLE "cc_show_instances"
     "last_scheduled" TIMESTAMP,
     "modified_instance" BOOLEAN DEFAULT 'f' NOT NULL,
     "rotation" INTEGER,
+    "rotation_scheduled" BOOLEAN DEFAULT 'f',
     PRIMARY KEY ("id")
 );
 

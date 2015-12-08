@@ -1,13 +1,16 @@
 <div id="rotations" ng-app="rotation">
     <div class="angular_wrapper" ng-controller="Rotation">
-        <table id="rotation_table" class="datatable" cellpadding="0" cellspacing="0"></table>
+        <div class="content-pane">
+            <table id="rotation_table" class="datatable" cellpadding="0" cellspacing="0"></table>
+        </div>
 
-        <div ng-if="rotation" class="rotation-settings content-pane">
+        <div ng-if="rotation" ng-element-ready="initTables()" class="rotation-settings content-pane">
             <div class="inner_editor_title">
                 <h2>
                     <span class="title_obj_name">{{rotation.name}}</span>
                 </h2>
             </div>
+            <table id="rotation_preview" class="datatable" cellpadding="0" cellspacing="0"></table>
             <form>
 
             </form>
@@ -15,7 +18,5 @@
         <div ng-if="!rotation" class="rotation-settings-placeholder content-pane">
             <span><?php echo _("Select a Rotation!"); ?></span>
         </div>
-
-        <table id="rotation_preview" class="datatable" cellpadding="0" cellspacing="0"></table>
     </div>
 </div>

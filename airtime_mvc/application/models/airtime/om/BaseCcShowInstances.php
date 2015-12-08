@@ -119,6 +119,13 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
     protected $rotation;
 
     /**
+     * The value for the rotation_scheduled field.
+     * Note: this column has a database default value of: false
+     * @var        boolean
+     */
+    protected $rotation_scheduled;
+
+    /**
      * @var        CcShow
      */
     protected $aCcShow;
@@ -207,6 +214,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         $this->rebroadcast = 0;
         $this->time_filled = '00:00:00';
         $this->modified_instance = false;
+        $this->rotation_scheduled = false;
     }
 
     /**
@@ -467,6 +475,17 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
     {
 
         return $this->rotation;
+    }
+
+    /**
+     * Get the [rotation_scheduled] column value.
+     *
+     * @return boolean
+     */
+    public function getDbRotationScheduled()
+    {
+
+        return $this->rotation_scheduled;
     }
 
     /**
@@ -796,6 +815,35 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
     } // setDbRotation()
 
     /**
+     * Sets the value of the [rotation_scheduled] column.
+     * Non-boolean arguments are converted using the following rules:
+     *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     *
+     * @param boolean|integer|string $v The new value
+     * @return CcShowInstances The current object (for fluent API support)
+     */
+    public function setDbRotationScheduled($v)
+    {
+        if ($v !== null) {
+            if (is_string($v)) {
+                $v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            } else {
+                $v = (boolean) $v;
+            }
+        }
+
+        if ($this->rotation_scheduled !== $v) {
+            $this->rotation_scheduled = $v;
+            $this->modifiedColumns[] = CcShowInstancesPeer::ROTATION_SCHEDULED;
+        }
+
+
+        return $this;
+    } // setDbRotationScheduled()
+
+    /**
      * Indicates whether the columns in this object are only set to default values.
      *
      * This method can be used in conjunction with isModified() to indicate whether an object is both
@@ -822,6 +870,10 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             }
 
             if ($this->modified_instance !== false) {
+                return false;
+            }
+
+            if ($this->rotation_scheduled !== false) {
                 return false;
             }
 
@@ -861,6 +913,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             $this->last_scheduled = ($row[$startcol + 11] !== null) ? (string) $row[$startcol + 11] : null;
             $this->modified_instance = ($row[$startcol + 12] !== null) ? (boolean) $row[$startcol + 12] : null;
             $this->rotation = ($row[$startcol + 13] !== null) ? (int) $row[$startcol + 13] : null;
+            $this->rotation_scheduled = ($row[$startcol + 14] !== null) ? (boolean) $row[$startcol + 14] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -870,7 +923,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 14; // 14 = CcShowInstancesPeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 15; // 15 = CcShowInstancesPeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating CcShowInstances object", $e);
@@ -1241,6 +1294,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         if ($this->isColumnModified(CcShowInstancesPeer::ROTATION)) {
             $modifiedColumns[':p' . $index++]  = '"rotation"';
         }
+        if ($this->isColumnModified(CcShowInstancesPeer::ROTATION_SCHEDULED)) {
+            $modifiedColumns[':p' . $index++]  = '"rotation_scheduled"';
+        }
 
         $sql = sprintf(
             'INSERT INTO "cc_show_instances" (%s) VALUES (%s)',
@@ -1293,6 +1349,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
                         break;
                     case '"rotation"':
                         $stmt->bindValue($identifier, $this->rotation, PDO::PARAM_INT);
+                        break;
+                    case '"rotation_scheduled"':
+                        $stmt->bindValue($identifier, $this->rotation_scheduled, PDO::PARAM_BOOL);
                         break;
                 }
             }
@@ -1517,6 +1576,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             case 13:
                 return $this->getDbRotation();
                 break;
+            case 14:
+                return $this->getDbRotationScheduled();
+                break;
             default:
                 return null;
                 break;
@@ -1560,6 +1622,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             $keys[11] => $this->getDbLastScheduled(),
             $keys[12] => $this->getDbModifiedInstance(),
             $keys[13] => $this->getDbRotation(),
+            $keys[14] => $this->getDbRotationScheduled(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -1664,6 +1727,9 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
             case 13:
                 $this->setDbRotation($value);
                 break;
+            case 14:
+                $this->setDbRotationScheduled($value);
+                break;
         } // switch()
     }
 
@@ -1702,6 +1768,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         if (array_key_exists($keys[11], $arr)) $this->setDbLastScheduled($arr[$keys[11]]);
         if (array_key_exists($keys[12], $arr)) $this->setDbModifiedInstance($arr[$keys[12]]);
         if (array_key_exists($keys[13], $arr)) $this->setDbRotation($arr[$keys[13]]);
+        if (array_key_exists($keys[14], $arr)) $this->setDbRotationScheduled($arr[$keys[14]]);
     }
 
     /**
@@ -1727,6 +1794,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         if ($this->isColumnModified(CcShowInstancesPeer::LAST_SCHEDULED)) $criteria->add(CcShowInstancesPeer::LAST_SCHEDULED, $this->last_scheduled);
         if ($this->isColumnModified(CcShowInstancesPeer::MODIFIED_INSTANCE)) $criteria->add(CcShowInstancesPeer::MODIFIED_INSTANCE, $this->modified_instance);
         if ($this->isColumnModified(CcShowInstancesPeer::ROTATION)) $criteria->add(CcShowInstancesPeer::ROTATION, $this->rotation);
+        if ($this->isColumnModified(CcShowInstancesPeer::ROTATION_SCHEDULED)) $criteria->add(CcShowInstancesPeer::ROTATION_SCHEDULED, $this->rotation_scheduled);
 
         return $criteria;
     }
@@ -1803,6 +1871,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         $copyObj->setDbLastScheduled($this->getDbLastScheduled());
         $copyObj->setDbModifiedInstance($this->getDbModifiedInstance());
         $copyObj->setDbRotation($this->getDbRotation());
+        $copyObj->setDbRotationScheduled($this->getDbRotationScheduled());
 
         if ($deepCopy && !$this->startCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
@@ -2953,6 +3022,7 @@ abstract class BaseCcShowInstances extends BaseObject implements Persistent
         $this->last_scheduled = null;
         $this->modified_instance = null;
         $this->rotation = null;
+        $this->rotation_scheduled = null;
         $this->alreadyInSave = false;
         $this->alreadyInValidation = false;
         $this->alreadyInClearAllReferencesDeep = false;

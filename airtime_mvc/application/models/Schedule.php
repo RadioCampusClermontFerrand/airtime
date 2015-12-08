@@ -1137,7 +1137,7 @@ SQL;
         $nextInstance = CcShowInstancesQuery::create()
             ->filterByDbEnds($now, Criteria::GREATER_THAN)
             ->findOne();
-        if ($nextInstance && !empty($nextInstance->getDbRotation())) {
+        if ($nextInstance && !empty($nextInstance->getDbRotation()) && !$nextInstance->getDbRotationScheduled()) {
             self::scheduleRotation($nextInstance);
         }
     }
@@ -1149,10 +1149,15 @@ SQL;
     public static function scheduleRotation($instance) {
         $length = strtotime($instance->getDbEnds(DEFAULT_TIMEZONE_FORMAT))
             - strtotime($instance->getDbStarts(DEFAULT_TIMEZONE_FORMAT));
-        $rotation = new RotationBuilder($instance, $length);
+        $r = RotationQuery::create()->findPk($instance->getDbRotation());
+        if ($r->getDbPlaylist() > 0) {
+            $rotation = new PlaylistRotationBuilder($instance, $length);
+        } else {
+            $rotation = new RotationBuilder($instance, $length);
+        }
         if ($rotation->schedule()) {
             Application_Model_RabbitMq::PushSchedule();
-            // $instance->setDbRotationScheduled(true)->save();
+            $instance->setDbRotationScheduled(true)->save();
         }
     }
 

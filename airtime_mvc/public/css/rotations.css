@@ -8,14 +8,23 @@
 }
 
 #rotation_table_wrapper, #rotation_preview_wrapper {
-    position: relative;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 80%;
+
     -webkit-flex: 0 auto;
     -moz-flex: 0 auto;
     -ms-flex: 0 auto;
     -o-flex: 0 auto;
     flex: 0 auto;
 
-    width: 40%;
     height: 80%;
     margin: auto;
+}
+
+#rotations .content-pane {
+    width: 50%;
 }

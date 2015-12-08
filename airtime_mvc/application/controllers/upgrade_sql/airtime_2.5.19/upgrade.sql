@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS rotation (
   id SERIAL NOT NULL,
   name VARCHAR(128) NOT NULL,
-  criteria TEXT NOT NULL,
+  criteria TEXT,
   playlist INTEGER,
   seed FLOAT,
   PRIMARY KEY (id)
