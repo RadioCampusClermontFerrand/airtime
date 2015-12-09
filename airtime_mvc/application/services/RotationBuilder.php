@@ -5,9 +5,6 @@ class RotationBuilder {
     /** @var int length of time, in seconds, to get history for when finding new tracks for rotation */
     protected static $_HISTORY_LOOKUP_SECONDS = 3600;
 
-    /** @var int default Rotation duration */
-    protected static $_DEFAULT_ROTATION_LENGTH = 3600;
-
     /** @var Rotation $rotation */
     protected $_rotation;
 
@@ -54,7 +51,9 @@ class RotationBuilder {
     public function __construct(CcShowInstances $instance, $length = null) {
         $this->_history = $this->_getHistory();
         $this->_showInstance = $instance;
-        $this->_timeToFill = is_null($length) ? static::$_DEFAULT_ROTATION_LENGTH : $length;
+        $instanceLength = strtotime($instance->getDbEnds(DEFAULT_TIMEZONE_FORMAT))
+            - strtotime($instance->getDbStarts(DEFAULT_TIMEZONE_FORMAT));
+        $this->_timeToFill = is_null($length) ? $instanceLength : $length;
         $this->_rotation = RotationQuery::create()->findPk($instance->getDbRotation());
         $criteria = $this->_rotation->getDbCriteria();
         if (!empty($criteria)) {

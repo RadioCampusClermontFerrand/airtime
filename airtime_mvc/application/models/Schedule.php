@@ -1147,14 +1147,7 @@ SQL;
      * @param CcShowInstances $instance
      */
     public static function scheduleRotation($instance) {
-        $length = strtotime($instance->getDbEnds(DEFAULT_TIMEZONE_FORMAT))
-            - strtotime($instance->getDbStarts(DEFAULT_TIMEZONE_FORMAT));
-        $r = RotationQuery::create()->findPk($instance->getDbRotation());
-        if ($r->getDbPlaylist() > 0) {
-            $rotation = new PlaylistRotationBuilder($instance, $length);
-        } else {
-            $rotation = new RotationBuilder($instance, $length);
-        }
+        $rotation = RotationFactory::getRotation($instance);
         if ($rotation->schedule()) {
             Application_Model_RabbitMq::PushSchedule();
         }

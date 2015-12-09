@@ -53,6 +53,7 @@ require_once __DIR__."/services/RotationBuilder.php";
 require_once __DIR__."/services/PlaylistRotationBuilder.php";
 
 /* Factories */
+require_once __DIR__.'/services/RotationFactory.php';
 require_once __DIR__.'/services/CeleryServiceFactory.php';
 require_once __DIR__.'/services/PublishServiceFactory.php';
 

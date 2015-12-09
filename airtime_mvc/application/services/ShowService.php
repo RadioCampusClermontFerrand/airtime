@@ -422,7 +422,7 @@ class Application_Service_ShowService
         foreach ($instances as $instance) {
             $instance->setDbRotation($data["add_show_rotations"]);
             if ($data["add_show_rotation_generate"] == 0) {  // Generate now
-                $rotation = new RotationBuilder($instance);
+                $rotation = RotationFactory::getRotation($instance);
                 if (!$rotation->schedule()) {
                     throw new Exception("Failed to schedule rotation");
                 }
