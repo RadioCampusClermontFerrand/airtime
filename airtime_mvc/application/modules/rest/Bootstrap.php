@@ -13,15 +13,30 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
             'rest'=> array('media', 'show-image', 'podcast', 'podcast-episodes', 'listener-stats')));
         assert($router->addRoute('rest', $restRoute));
 
+        /*********** LISTENER STAT ROUTES BEGIN ******************/
         $listenerStatsGeolocation = new Zend_Controller_Router_Route(
-            'rest/listener-stats/geolocation/*',
+            'rest/listener-stats/global-geolocation/*',
             array(
                 'controller' => 'listener-stats',
-                'action' => 'geolocation',
+                'action' => 'global-geolocation',
                 'module' => 'rest'
             )
         );
-        $router->addRoute('listener-stats-geolocation', $listenerStatsGeolocation);
+        $router->addRoute('listener-stats-global-geolocation', $listenerStatsGeolocation);
+
+        $listenerStatsCountryGeolocation = new Zend_Controller_Router_Route_Regex(
+            'rest/listener-stats/country-geolocation/(?<country>\w+( \w+)*)/*',
+            array(
+                'controller' => 'listener-stats',
+                'action' => 'country-geolocation',
+                'module' => 'rest'
+            ),
+            array(
+                1 => 'country'
+            )
+        );
+        $router->addRoute('listener-stats-country-geolocation', $listenerStatsCountryGeolocation);
+        /*********** LISTENER STAT ROUTES END ******************/
 
         $podcastBulkRoute = new Zend_Controller_Router_Route(
             'rest/podcast/bulk',

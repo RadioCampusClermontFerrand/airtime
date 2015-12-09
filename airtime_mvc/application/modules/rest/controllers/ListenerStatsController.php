@@ -61,23 +61,69 @@ class Rest_ListenerStatsController extends Zend_Rest_Controller
         }
     }
 
-    public function geolocationAction()
+    public function globalGeolocationAction()
     {
         $start = $this->_getParam('start', null);
         $end = $this->_getParam('end', null);
 
-        $timestampRegex = "/^[0-9]{1,4}-[0-9]{1,2}-[0-9]{1,2} [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}$/";
-        if (!is_null($start) && !is_null($end) &&
-            (!preg_match($timestampRegex, $start) || !preg_match($timestampRegex, $end))) {
-            $this->getResponse()
-                ->setHttpResponseCode(400)
-                ->appendBody("Error: Invalid timestamp");
+        if (!$this->validateDateRange($start, $end)) {
             return;
         }
 
         $this->getResponse()
             ->setHttpResponseCode(201)
-            ->appendBody(json_encode(ListenerStats::getGeoLocationsStats($start, $end)));
+            ->appendBody(json_encode(ListenerStats::getGlobalGeoLocationsStats($start, $end)));
+    }
+
+    public function countryGeolocationAction()
+    {
+        $country = $this->getCountry();
+        if (!$country) {
+            return;
+        }
+
+        try {
+            $start = $this->_getParam('start', null);
+            $end = $this->_getParam('end', null);
+
+            if (!$this->validateDateRange($start, $end)) {
+                return;
+            }
+
+            $this->getResponse()
+                ->setHttpResponseCode(200)
+                ->appendBody(json_encode(ListenerStats::getCountryGeoLocationStats($country, $start, $end)));
+        } catch (Exception $e) {
+            $this->getResponse()
+                ->setHttpResponseCode(400)
+                ->appendBody("Error: ". $e->getMessage());
+        }
+
+    }
+
+    private function validateDateRange($start, $end)
+    {
+        $timestampRegex = "/^[0-9]{1,4}-[0-9]{1,2}-[0-9]{1,2} [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}$/";
+        if (!is_null($start) && !is_null($end) &&
+            (!preg_match($timestampRegex, $start) || !preg_match($timestampRegex, $end))) {
+
+            $resp = $this->getResponse();
+            $resp->setHttpResponseCode(400);
+            $resp->appendBody("Error: Invalid timestamp");
+            return false;
+        }
+        return true;
+    }
+
+    private function getCountry()
+    {
+        if (!$country = $this->_getParam('country',false)) {
+            $resp = $this->getResponse();
+            $resp->setHttpResponseCode(400);
+            $resp->appendBody("ERROR: No country name specified.");
+            return false;
+        }
+        return $country;
     }
 
     private function getId()

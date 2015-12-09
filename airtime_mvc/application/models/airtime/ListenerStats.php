@@ -47,7 +47,44 @@ class ListenerStats extends BaseListenerStats
 
     }
 
-    public static function getGeoLocationsStats($start=null, $end=null)
+    public static function getCountryGeoLocationStats($country, $start=null, $end=null)
+    {
+        if(is_null($start) && is_null($end)) {
+            $stats = ListenerStatsQuery::create()
+                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
+                ->filterByDbCountryName(ucwords(strtolower($country)))
+                ->find();
+        } else {
+            $stats = ListenerStatsQuery::create()
+                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
+                ->filterByDbCountryName(ucwords(strtolower($country)))
+                ->filterByDbDisconnectTimestamp($start, Criteria::GREATER_EQUAL)
+                ->filterByDbDisconnectTimestamp($end, Criteria::LESS_THAN)
+                ->find();
+        }
+
+        $result = array();
+        foreach ($stats as $stat) {
+            if (!is_null($stat["city"])) {
+                if (!isset($result[$stat["city"]])) {
+                    $result[$stat["city"]] = 1;
+                } else {
+                    $result[$stat["city"]] += 1;
+                }
+
+            } else {
+                if (!isset($result["unknown"])) {
+                    $result["unknown"] = 1;
+                } else {
+                    $result["unknown"] += 1;
+                }
+            }
+
+        }
+        return $result;
+    }
+
+    public static function getGlobalGeoLocationsStats($start=null, $end=null)
     {
         if(is_null($start) && is_null($end)) {
             $stats = ListenerStatsQuery::create()

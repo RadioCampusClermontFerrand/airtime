@@ -59,7 +59,7 @@ function getGeolocationStats() {
     var start = $("#geo-stat-start-date-picker").val() + " " + $("#geo-stat-start-time-picker").val() + ":00";
     var end = $("#geo-stat-end-date-picker").val() + " " + $("#geo-stat-end-time-picker").val() + ":00";
 
-    $.get("/rest/listener-stats/geolocation", {start: start, end: end}, function(data) {
+    $.get("/rest/listener-stats/global-geolocation", {start: start, end: end}, function(data) {
         api_data = JSON.parse(data);
 
         var country_map_data = [];
