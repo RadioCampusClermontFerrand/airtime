@@ -420,7 +420,7 @@ class Application_Service_ShowService
         if (!isset($data["add_show_rotations"]) || is_null($data["add_show_rotations"])) { return; }
         $instances = $this->ccShow->getFutureCcShowInstancess();
         foreach ($instances as $instance) {
-            $instance->setDbRotation($data["add_show_rotations"]);
+            $instance->setDbRotation($data["add_show_rotations"])->save();
             if ($data["add_show_rotation_generate"] == 0) {  // Generate now
                 $rotation = RotationFactory::getRotation($instance);
                 if (!$rotation->schedule()) {
