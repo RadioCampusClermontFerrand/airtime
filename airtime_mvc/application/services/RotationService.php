@@ -53,4 +53,16 @@ class Application_Service_RotationService {
         return true;
     }
 
+    /**
+     * Returns a preview of a potential iteration of the Rotation with the given ID.
+     *
+     * @param $id
+     *
+     * @return CcFiles[]
+     */
+    public function getPreview($id) {
+        $rotation = RotationQuery::create()->findPk($id);
+        return empty($rotation) ? "" : RotationBuilder::generatePreview($rotation);
+    }
+
 }

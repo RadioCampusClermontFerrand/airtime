@@ -113,6 +113,24 @@ class Rest_RotationController extends Zend_Rest_Controller {
 
     /**
      *
+     */
+    public function previewAction() {
+        if (!($id = $this->_getParam('id', false))) {
+            $this->_setResponse(HttpResponseType::BAD_REQUEST, "No Rotation ID specified");
+            return;
+        }
+
+        try {
+            $preview = $this->_service->getPreview($id);
+            $this->_setResponse(HttpResponseType::OK, json_encode($preview));
+        } catch (Exception $e) {
+            Logging::error($e->getMessage());
+            $this->_setResponse(HttpResponseType::SERVER_ERROR, "Rotation could not be deleted");
+        }
+    }
+
+    /**
+     *
      *
      * @param $code
      * @param $message

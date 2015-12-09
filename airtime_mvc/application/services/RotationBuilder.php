@@ -5,6 +5,9 @@ class RotationBuilder {
     /** @var int length of time, in seconds, to get history for when finding new tracks for rotation */
     protected static $_HISTORY_LOOKUP_SECONDS = 3600;
 
+    /** @var int length of time, in seconds, to limit the preview generation to */
+    protected static $_DEFAULT_PREVIEW_LENGTH = 3600;
+
     /** @var Rotation $rotation */
     protected $_rotation;
 
@@ -43,12 +46,16 @@ class RotationBuilder {
     protected $_trackLengthMin;
 
     /**
-     * Rotation constructor.
+     * Initialize the builder with values from the given CcShowInstances object.
+     *
+     * If no instance is given, return an unitialized object.
      *
      * @param CcShowInstances $instance show instance to schedule the Rotation in
      * @param int|null        [$length] optional override for the default Rotation length
      */
-    public function __construct(CcShowInstances $instance, $length = null) {
+    public function __construct(CcShowInstances $instance = null, $length = null) {
+        if (empty($instance)) { return; }
+
         $this->_history = $this->_getHistory();
         $this->_showInstance = $instance;
         $instanceLength = strtotime($instance->getDbEnds(DEFAULT_TIMEZONE_FORMAT))
@@ -59,6 +66,22 @@ class RotationBuilder {
         if (!empty($criteria)) {
             $this->_filters = json_decode($criteria);
         }
+    }
+
+    /**
+     * Returns a preview of a potential iteration of the given Rotation.
+     *
+     * @param $rotation
+     *
+     * @return CcFiles[]
+     *
+     * @throws Exception
+     */
+    public static function generatePreview($rotation) {
+        $r = new RotationBuilder();
+        $r->_rotation = $rotation;
+        $r->_timeToFill = static::$_DEFAULT_PREVIEW_LENGTH;
+        return $r->_getPreview();
     }
 
     /**
@@ -94,6 +117,39 @@ class RotationBuilder {
         $this->_build();
         $after = $this->_lastScheduled ? $this->_lastScheduled : 0;
         return $this->_addToSchedule($after);
+    }
+
+    /**
+     * Generate a single iteration of the rotation to preview
+     */
+    public function _getPreview() {
+        $seed = $this->_rotation->getDbSeed();
+        if (!$seed) {
+            $seed = mt_rand() / mt_getrandmax();
+        }
+
+        $this->_con = Propel::getConnection(CcPrefPeer::DATABASE_NAME);
+        $this->_con->beginTransaction();
+
+        // We only want to take the history and blacklist into account on the first pass
+        // TODO: should this be incremental instead?
+        try {
+            // Reset the database seed each pass so we get consistent ordering
+            $this->_seedResultSet($seed);
+            $suitableTracks = $this->_getSuitableTracks(false);
+            $this->_con->commit();
+        } catch (Exception $e) {
+            Logging::error($e->getTraceAsString());
+            Logging::error($e->getMessage());
+            $this->_con->rollBack();
+            throw $e;
+        }
+
+        $data = array();
+        foreach ($suitableTracks as $track) {
+            $data[] = $track->toArray(BasePeer::TYPE_FIELDNAME);
+        }
+        return $data;
     }
 
     /**
@@ -234,12 +290,12 @@ class RotationBuilder {
      */
     protected function _buildQuery($excludeBlacklist = true, $greaterThanInterval = '00:00:00') {
         $query = CcFilesQuery::create()
-            ->withColumn("SUM(length) OVER (ORDER BY random())", "total")
-            ->filterByDbLength(gmdate("H:i:s", $this->_timeToFill), Criteria::LESS_EQUAL)
-            ->_if($excludeBlacklist)
-                ->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN)
-            ->_endif()
-            ->filterByDbLength($greaterThanInterval, Criteria::GREATER_THAN);
+            ->filterByDbLength(gmdate("H:i:s", $this->_timeToFill), Criteria::LESS_EQUAL);
+        if ($excludeBlacklist) {  // _if still executes the code, so this is faster if slightly less readable
+            $query->filterByDbId($this->_getExcludeArray(), Criteria::NOT_IN);
+        }
+        $query->filterByDbLength($greaterThanInterval, Criteria::GREATER_THAN)
+            ->withColumn("SUM(length) OVER (ORDER BY random())", "total");
         foreach ($this->_filters as $filter) {
             $query->filterBy($filter->column, $filter->value, $filter->comparison);
         }

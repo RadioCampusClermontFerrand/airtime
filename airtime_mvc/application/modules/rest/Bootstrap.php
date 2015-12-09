@@ -65,6 +65,20 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
         );
         $router->addRoute('podcast-episodes', $route);
 
+        /** RotationController Routes */
+        $rotationPreviewRoute = new Zend_Controller_Router_Route(
+            'rest/rotation/:id/preview',
+            array(
+                'controller' => 'rotation',
+                'action' => 'preview',
+                'module' => 'rest'
+            ),
+            array(
+                'id' => '\d+'
+            )
+        );
+        $router->addRoute('rotation-preview', $rotationPreviewRoute);
+
         /** MediaController Routes **/
         $downloadRoute = new Zend_Controller_Router_Route(
             'rest/media/:id/download',

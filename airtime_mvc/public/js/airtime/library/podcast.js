@@ -66,8 +66,6 @@ var AIRTIME = (function (AIRTIME) {
 
     /**
      * Initialize the controller.
-     *
-     * Sets up the internal datatable.
      */
     PodcastController.prototype.initialize = function() {
         var self = this;
