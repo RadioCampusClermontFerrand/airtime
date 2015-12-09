@@ -7,6 +7,21 @@ class Application_Common_Database
     const EXECUTE = 'execute';
     const ROW_COUNT = 'row_count';
 
+    /** @var PDO $_con */
+    private $_con;
+
+    /** @var bool $_isolationLevelSet */
+    private $_isolationLevelSet = false;
+
+    /**
+     * Application_Common_Database constructor.
+     *
+     * @param PDO $con
+     */
+    public function __construct($con) {
+        $this->_con = $con;
+    }
+
     public static function prepareAndExecute($sql, 
         array $paramValueMap = array(),
         $type=self::ALL, 
@@ -66,5 +81,22 @@ class Application_Common_Database
         }
         return Application_Common_Database::prepareAndExecute( $new_sql,
             $new_params, $type, $fetchType);
+    }
+
+    /**
+     * Try to set the transaction isolation level
+     *
+     * @param string $isolationLevel
+     *
+     * @throws AirtimeDatabaseException
+     */
+    public function setIsolationLevel($isolationLevel = "SERIALIZABLE") {
+        if (!$this->_con->inTransaction()) {
+            throw new AirtimeDatabaseException("Cannot set transaction isolation level outside of a transaction!");
+        }
+
+        if (!$this->_isolationLevelSet) {
+            $this->_con->exec("SET TRANSACTION ISOLATION LEVEL $isolationLevel");
+        }
     }
 }

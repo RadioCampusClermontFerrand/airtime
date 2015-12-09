@@ -1058,7 +1058,8 @@ class Application_Model_Scheduler
         try {
             //Increase the transaction isolation level to prevent two concurrent requests from potentially resulting
             //in tracks scheduled at the same time.
-            $this->con->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+            $db = new Application_Common_Database($this->con);
+            $db->setIsolationLevel();
 
             $this->validateMediaItems($mediaItems); //Check for missing files, etc.
             $this->validateRequest($scheduleItems, true);

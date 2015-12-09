@@ -852,7 +852,8 @@ SQL;
             $con->beginTransaction();
             //It is extremely important that we increase the transaction isolation level, so that if two
             //requests cause the show schedule to be generated at the same time, one will be rolled back.
-            $con->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+            $db = new Application_Common_Database($con);
+            $db->setIsolationLevel();
 
             //UTC DateTime object
             $showsPopUntil = Application_Model_Preference::GetShowsPopulatedUntil();

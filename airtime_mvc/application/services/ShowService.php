@@ -194,6 +194,9 @@ class Application_Service_ShowService
         $con = Propel::getConnection();
         $con->beginTransaction();
         try {
+            $db = new Application_Common_Database($con);
+            $db->setIsolationLevel();
+
             if (!$currentUser->isAdminOrPM()) {
                 throw new Exception("Permission denied");
             }
@@ -244,6 +247,9 @@ class Application_Service_ShowService
             //create new ccShowInstances
             $this->delegateInstanceCreation($daysAdded);
 
+            // Create and schedule rotations (if necessary)
+            $this->setupRotations($showData);
+
             if ($this->isUpdate) {
 
                 /* If the show is repeating and the start date changes we need
@@ -267,7 +273,7 @@ class Application_Service_ShowService
             Logging::info("EXCEPTION: Show ".$action." failed.");
             Logging::info($e->getMessage());
         }
-        
+
         // Added to pass along to the RESTful ShowImageController
         return $this->ccShow->getDbId();
     }
@@ -403,6 +409,27 @@ class Application_Service_ShowService
         return $this->ccShow;
     }
 
+    /**
+     * Set up Rotation data for each instance in the created/updated show
+     *
+     * @param array $data
+     *
+     * @throws Exception
+     */
+    private function setupRotations($data) {
+        if (!isset($data["add_show_rotations"]) || is_null($data["add_show_rotations"])) { return; }
+        $instances = $this->ccShow->getFutureCcShowInstancess();
+        foreach ($instances as $instance) {
+            $instance->setDbRotation($data["add_show_rotations"]);
+            if ($data["add_show_rotation_generate"] == 0) {  // Generate now
+                $rotation = new RotationBuilder($instance);
+                if (!$rotation->schedule()) {
+                    throw new Exception("Failed to schedule rotation");
+                }
+            }
+        }
+    }
+
     private function getShowDaysInRange($start, $end)
     {
         $endTimeString = $end->format(DEFAULT_TIMESTAMP_FORMAT);
@@ -454,15 +481,11 @@ class Application_Service_ShowService
 
     private function deleteRebroadcastInstances()
     {
-        $sql = <<<SQL
-DELETE FROM cc_show_instances
-WHERE starts > :timestamp::TIMESTAMP
-AND show_id = :showId
-AND rebroadcast = 1;
-SQL;
-        Application_Common_Database::prepareAndExecute( $sql, array(
-            ':showId' => $this->ccShow->getDbId(),
-            ':timestamp'  => gmdate(DEFAULT_TIMESTAMP_FORMAT)), 'execute');
+        CcShowInstancesQuery::create()
+            ->filterByDbStarts(gmdate(DEFAULT_TIMESTAMP_FORMAT), Criteria::GREATER_THAN)
+            ->filterByDbShowId($this->ccShow->getDbId())
+            ->filterByDbRebroadcast(1)
+            ->delete();
     }
 
     private function deleteAllShowDays($showId)
@@ -1321,10 +1344,9 @@ SQL;
      */
     public static function getMonthlyWeeklyRepeatInterval($showStart)
     {
-        $start = clone $showStart;
-        $dayOfMonth = $start->format("j");
-        $dayOfWeek = $start->format("l");
-        $yearAndMonth = $start->format("Y-m");
+        $dayOfMonth = $showStart->format("j");
+        $dayOfWeek = $showStart->format("l");
+        $yearAndMonth = $showStart->format("Y-m");
         $firstDayOfWeek = strtotime($dayOfWeek." ".$yearAndMonth);
         // if $dayOfWeek is Friday, what number of the month does
         // the first Friday fall on

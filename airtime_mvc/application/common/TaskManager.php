@@ -84,6 +84,9 @@ final class TaskManager {
         $this->_con = Propel::getConnection(CcPrefPeer::DATABASE_NAME);
         $this->_con->beginTransaction();
         try {
+            $db = new Application_Common_Database($this->_con);
+            $db->setIsolationLevel();
+
             $lock = $this->_getLock();
             if ($lock && (microtime(true) < ($lock['valstr'] + self::TASK_INTERVAL_SECONDS))) {
                 // Propel caches the database connection and uses it persistently, so if we don't

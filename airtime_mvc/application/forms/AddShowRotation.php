@@ -30,7 +30,7 @@ class Application_Form_AddShowRotation extends Zend_Form_SubForm  {
             ->setLabel(_('Schedule tracks:'))
             ->addMultiOptions(array(
                                   0 => 'Now',
-                                  1 => 'JIT'
+                                  1 => 'JIT'  // FIXME
                               ))
             ->setValue(0);
         $this->addElement($generation);
@@ -38,7 +38,7 @@ class Application_Form_AddShowRotation extends Zend_Form_SubForm  {
 
     public function getRotationList() {
         $rotations = array(null => "Select a rotation",);
-        $query = RotationQuery::create();
+        $query = RotationQuery::create()->orderByDbId();
         foreach ($query->find() as $rotation) {
             $rotations[$rotation->getDbId()] = $rotation->getDbName();
         }

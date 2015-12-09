@@ -1157,7 +1157,6 @@ SQL;
         }
         if ($rotation->schedule()) {
             Application_Model_RabbitMq::PushSchedule();
-            $instance->setDbRotationScheduled(true)->save();
         }
     }
 

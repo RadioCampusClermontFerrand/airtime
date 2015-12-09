@@ -12,7 +12,7 @@ ALTER TABLE rotation ADD CONSTRAINT rotation_cc_playlist_fkey
   REFERENCES cc_playlist (id)
   ON DELETE SET NULL;
 
-INSERT INTO rotation (name, criteria) VALUES ('Airtime Mix', '[{"column":"length","comparison":">","value":"00:01:00"},{"column":"length","comparison":"<","value":"00:10:00"}]');
+INSERT INTO rotation (name, criteria) VALUES ('Airtime Mix', '[{"column":"DbLength","comparison":">","value":"00:01:00"},{"column":"DbLength","comparison":"<","value":"00:10:00"}]');
 
 ALTER TABLE cc_show_instances ADD COLUMN rotation INTEGER;
 ALTER TABLE cc_show_instances ADD COLUMN rotation_scheduled BOOLEAN;

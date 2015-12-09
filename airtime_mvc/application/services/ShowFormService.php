@@ -384,10 +384,23 @@ class Application_Service_ShowFormService
      *
      * @param Zend_Form_Subform $form
      */
-    private function populateFormRotation($form) {
+    private function populateFormRotation(Zend_Form_Subform $form) {
+        if (!empty($this->instanceId)) {
+            $instance = CcShowInstancesQuery::create()->findPk($this->instanceId);
+        } else {
+            $instance = CcShowInstancesQuery::create()
+                ->filterByDbShowId($this->ccShow->getDbId())
+                ->filterByDbModifiedInstance(false)
+                ->findOne();
+        }
+        $scheduling = $instance->getDbRotation() > 0 ? 1 : 0;
+        $rotationId = $scheduling ? $instance->getDbRotation() : null;
+        $generate   = $instance->getDbRotationScheduled() ? 0 : 1;
         $form->populate(
             array(
-                // TODO
+                "add_show_rotation_scheduling"  => $scheduling,
+                "add_show_rotations"            => $rotationId,
+                "add_show_rotation_generate"    => $generate,
             )
         );
     }

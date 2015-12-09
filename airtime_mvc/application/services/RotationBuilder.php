@@ -56,7 +56,10 @@ class RotationBuilder {
         $this->_showInstance = $instance;
         $this->_timeToFill = is_null($length) ? static::$_DEFAULT_ROTATION_LENGTH : $length;
         $this->_rotation = RotationQuery::create()->findPk($instance->getDbRotation());
-        $this->_filters = json_decode($this->_rotation->getDbCriteria());
+        $criteria = $this->_rotation->getDbCriteria();
+        if (!empty($criteria)) {
+            $this->_filters = json_decode($criteria);
+        }
     }
 
     /**
@@ -169,6 +172,7 @@ class RotationBuilder {
             }
             $this->_con->commit();
         } catch (Exception $e) {
+            Logging::error($e->getTraceAsString());
             Logging::error($e->getMessage());
             $this->_con->rollBack();
             throw $e;
@@ -303,6 +307,7 @@ class RotationBuilder {
 
         try {
             $scheduler->scheduleAfter($scheduledItems, $mediaItems);
+            $this->_showInstance->setDbRotationScheduled(true)->save();
             return true;
         } catch (Exception $e) {
             Logging::error($e);
