@@ -39,11 +39,11 @@ function getAggregateTuningMinutesStats(start, end) {
         var tick_size = 60*60*24;
         var options = {
             series: {
-                lines: { show: true },
+                lines: { show: true, fill: 0.3 },
                 points: { show: true }
             },
             yaxis: { min: 0, tickDecimals: 0 },
-            xaxis: { mode: "time", timeformat: "%Y/%m/%d", tickSize: [tick_size, "second"]}
+            xaxis: { mode: "time", timeformat: "%Y-%m-%d", tickSize: [tick_size, "second"]}
         };
 
         var flot_data = [];
