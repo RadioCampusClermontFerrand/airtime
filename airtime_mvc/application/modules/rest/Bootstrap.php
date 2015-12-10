@@ -36,6 +36,16 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
             )
         );
         $router->addRoute('listener-stats-country-geolocation', $listenerStatsCountryGeolocation);
+
+        $listenerStatsGeolocation = new Zend_Controller_Router_Route(
+            'rest/listener-stats/aggregate-tuning/*',
+            array(
+                'controller' => 'listener-stats',
+                'action' => 'aggregate-tuning',
+                'module' => 'rest'
+            )
+        );
+        $router->addRoute('listener-stats-aggregate-tuning', $listenerStatsGeolocation);
         /*********** LISTENER STAT ROUTES END ******************/
 
         $podcastBulkRoute = new Zend_Controller_Router_Route(

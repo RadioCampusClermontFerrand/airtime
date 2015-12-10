@@ -1,7 +1,10 @@
 var api_data;
 
 $(document).ready(function() {
-    startGeolocationStats();
+
+    setupDateRangePicker();
+
+    getAllReports();
 
     $("#back-to-world-map-btn").click(function() {
         $("#map_country").hide();
@@ -9,12 +12,45 @@ $(document).ready(function() {
         $("#map_world").show();
     });
 
-    $("#geo-stat-range-btn").click(getGeolocationStats);
+    $("#stats-range-btn").click(getAllReports);
+
 });
 
-function startGeolocationStats() {
-    setupDateRangePicker();
-    getGeolocationStats();
+function getAllReports() {
+    var start = $("#stats-start-date-picker").val();
+    var end = $("#stats-end-date-picker").val();
+
+    getGeolocationStats(start, end);
+    getAggregateTuningMinutesStats(start, end);
+}
+
+function getAggregateTuningMinutesStats(start, end) {
+    $.get("/rest/listener-stats/aggregate-tuning", {start: start, end: end}, function(data) {
+        data = JSON.parse(data);
+
+        var data_sets = [];
+        $.each(data, function(k, v) {
+            var minutes = (v.session_duration)/60;
+            var d = new Date(v.date);
+            var list = [d, minutes];
+            data_sets.push(list);
+        });
+
+        var tick_size = 60*60*24;
+        var options = {
+            series: {
+                lines: { show: true },
+                points: { show: true }
+            },
+            yaxis: { min: 0, tickDecimals: 0 },
+            xaxis: { mode: "time", timeformat: "%Y/%m/%d", tickSize: [tick_size, "second"]}
+        };
+
+        var flot_data = [];
+        flot_data.push({data: data_sets});
+
+        $.plot($("#aggregate-tuning"), flot_data, options);
+    });
 }
 
 function setupDateRangePicker() {
@@ -28,36 +64,19 @@ function setupDateRangePicker() {
         }
     };
 
-    oBaseTimePickerSettings = {
-        showPeriodLabels: false,
-        showCloseButton: true,
-        closeButtonText: $.i18n._("Done"),
-        showLeadingZero: false,
-        defaultTime: '0:00',
-        hourText: $.i18n._("Hour"),
-        minuteText: $.i18n._("Minute")
-    };
     var d = new Date();
     d.setDate(d.getDate()-1);
-    $("#geo-stat-start-date-picker").val($.datepicker.formatDate("yy-m-dd", d));
-    $("#geo-stat-start-date-picker").datepicker(oBaseDatePickerSettings);
-
-    $("#geo-stat-start-time-picker").val("00:00");
-    $("#geo-stat-start-time-picker").timepicker(oBaseTimePickerSettings);
+    $("#stats-start-date-picker").val($.datepicker.formatDate("yy-m-dd", d));
+    $("#stats-start-date-picker").datepicker(oBaseDatePickerSettings);
 
     d.setDate(d.getDate()+1);
-    $("#geo-stat-end-date-picker").val($.datepicker.formatDate("yy-m-dd", d));
-    $("#geo-stat-end-date-picker").datepicker(oBaseDatePickerSettings);
+    $("#stats-end-date-picker").val($.datepicker.formatDate("yy-m-dd", d));
+    $("#stats-end-date-picker").datepicker(oBaseDatePickerSettings);
 
-    $("#geo-stat-end-time-picker").val("00:00");
-    $("#geo-stat-end-time-picker").timepicker(oBaseTimePickerSettings);
 }
 
-function getGeolocationStats() {
+function getGeolocationStats(start, end) {
     $("#back-to-world-map-btn").click();
-
-    var start = $("#geo-stat-start-date-picker").val() + " " + $("#geo-stat-start-time-picker").val() + ":00";
-    var end = $("#geo-stat-end-date-picker").val() + " " + $("#geo-stat-end-time-picker").val() + ":00";
 
     $.get("/rest/listener-stats/global-geolocation", {start: start, end: end}, function(data) {
         api_data = JSON.parse(data);

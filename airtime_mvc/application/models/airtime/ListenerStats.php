@@ -49,19 +49,15 @@ class ListenerStats extends BaseListenerStats
 
     public static function getCountryGeoLocationStats($country, $start=null, $end=null)
     {
-        if(is_null($start) && is_null($end)) {
-            $stats = ListenerStatsQuery::create()
-                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
-                ->filterByDbCountryName(ucwords(strtolower($country)))
-                ->find();
-        } else {
-            $stats = ListenerStatsQuery::create()
-                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
-                ->filterByDbCountryName(ucwords(strtolower($country)))
-                ->filterByDbDisconnectTimestamp($start, Criteria::GREATER_EQUAL)
-                ->filterByDbDisconnectTimestamp($end, Criteria::LESS_THAN)
-                ->find();
+        $statsQuery = ListenerStatsQuery::create()
+            ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
+            ->filterByDbCountryName(ucwords(strtolower($country)));
+
+        if(!is_null($start) && !is_null($end)) {
+            $statsQuery->filterByDbDisconnectTimestamp(array("min" => $start, "max" => $end));
         }
+
+        $stats = $statsQuery->find();
 
         $result = array();
         foreach ($stats as $stat) {
@@ -86,17 +82,15 @@ class ListenerStats extends BaseListenerStats
 
     public static function getGlobalGeoLocationsStats($start=null, $end=null)
     {
-        if(is_null($start) && is_null($end)) {
-            $stats = ListenerStatsQuery::create()
-                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
-                ->find();
-        } else {
-            $stats = ListenerStatsQuery::create()
-                ->select(array('ip', 'city', 'country_name', 'country_iso_code'))
-                ->filterByDbDisconnectTimestamp($start, Criteria::GREATER_EQUAL)
-                ->filterByDbDisconnectTimestamp($end, Criteria::LESS_THAN)
-                ->find();
+
+        $statsQuery = ListenerStatsQuery::create()
+            ->select(array('ip', 'city', 'country_name', 'country_iso_code'));
+
+        if(!is_null($start) && !is_null($end)) {
+            $statsQuery->filterByDbDisconnectTimestamp(array("min" => $start, "max" => $end));
         }
+
+        $stats = $statsQuery->find();
 
         $result = array();
 
@@ -126,6 +120,45 @@ class ListenerStats extends BaseListenerStats
             }
         }
         return $result;
+    }
+
+    public static function getAggregateTuningHours($start=null, $end=null)
+    {
+        $stats = self::getAggregatePeriodDataPoints($start, $end);
+
+        return $stats->toArray();
+    }
+
+    /**
+     * Returns an array of data points to graph.
+     * Data points will be once an hour.
+     * @param $date
+     */
+    private static function getAggregateDailyDataPoints($date)
+    {
+
+    }
+
+    /**
+     * Returns an array of data points to graph.
+     * Data points will be daily.
+     * @param $start
+     * @param $end
+     */
+    private static function getAggregatePeriodDataPoints($start, $end)
+    {
+        $statsQuery = ListenerStatsQuery::create()
+            ->select(array('session_duration', 'date'))
+            ->withColumn('sum(session_duration)', 'session_duration')
+            ->withColumn('date(disconnect_timestamp)', 'date')
+            ->addGroupByColumn('date(disconnect_timestamp)')
+            ->addAscendingOrderByColumn('date');
+
+        if(!is_null($start) && !is_null($end)) {
+            $statsQuery->filterByDbDisconnectTimestamp(array("min" => $start, "max" => $end));
+        }
+
+        return $statsQuery->find();
     }
 
     public static function getListenerStatById($id)

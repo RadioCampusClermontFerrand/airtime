@@ -101,9 +101,23 @@ class Rest_ListenerStatsController extends Zend_Rest_Controller
 
     }
 
+    public function aggregateTuningAction()
+    {
+        $start = $this->_getParam('start', null);
+        $end = $this->_getParam('end', null);
+
+        if (!$this->validateDateRange($start, $end)) {
+            return;
+        }
+
+        $this->getResponse()
+            ->setHttpResponseCode(201)
+            ->appendBody(json_encode(ListenerStats::getAggregateTuningHours($start, $end)));
+    }
+
     private function validateDateRange($start, $end)
     {
-        $timestampRegex = "/^[0-9]{1,4}-[0-9]{1,2}-[0-9]{1,2} [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}$/";
+        $timestampRegex = "/^[0-9]{1,4}-[0-9]{1,2}-[0-9]{1,2}( [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2})?$/";
         if (!is_null($start) && !is_null($end) &&
             (!preg_match($timestampRegex, $start) || !preg_match($timestampRegex, $end))) {
 

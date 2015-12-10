@@ -7,21 +7,26 @@
     <a href="#listenerstat_content">Listener Count</a>
 </div>
 <div id="listener-stats">
+    <div id="stats_date_range">
+        <h3 style="padding-left: 0px">Date Range</h3>
+        <input type="text" id="stats-start-date-picker" class="input_text" />
+        <input type="text" id="stats-end-date-picker" class="input_text" />
+        <div id="stats-range-btn" class="btn btn-small" title="<?php echo _("Filter Stats")?>">
+            <i class="icon-white icon-search"></i><span><?php echo _("Filter Stats")?></span>
+        </div>
+    </div>
+
     <div class="stat">
         <h2><?php echo _("Regional Stats"); ?></h2>
-        <div id="geolocation_date_range">
-            <h3 style="padding-left: 0px">Date Range</h3>
-            <input type="text" id="geo-stat-start-date-picker" class="input_text" />
-            <input type="text" id="geo-stat-start-time-picker" class="input_text" />
-            <input type="text" id="geo-stat-end-date-picker" class="input_text" />
-            <input type="text" id="geo-stat-end-time-picker" class="input_text" />
-            <div id="geo-stat-range-btn" class="btn btn-small" title="<?php echo _("Filter Stats")?>">
-                <i class="icon-white icon-search"></i><span><?php echo _("Filter Stats")?></span>
-            </div>
-        </div>
+
         <a href="#" id="back-to-world-map-btn" style="display:none;">Back to world map</a>
         <div id="map_world"></div>
         <div id="map_country" style="display:none;"></div>
+    </div>
+
+    <div class="stat">
+        <h2><?php echo _("Aggregate Listening Minutes"); ?></h2>
+        <div id="aggregate-tuning" style="width:900px; height: 500px"></div>
     </div>
 
     <div class="stat">
