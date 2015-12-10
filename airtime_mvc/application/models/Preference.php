@@ -1658,4 +1658,20 @@ class Application_Model_Preference
     public static function setBandwidthLimitUpdateTimer() {
         self::setValue("bandwidth_limit_update_timer", microtime(true));
     }
+
+    // SAAS-1260
+
+    /**
+     * Accessors for dynamic Rotation scheduling.
+     * Contains the time, in seconds, to schedule dynamic Rotations in advance.
+     */
+
+    public static function getSecondsInAdvanceToScheduleRotations() {
+        $val = self::getValue("rotation_scheduling_advance_seconds");
+        return empty($val) ? 3600 : $val;
+    }
+
+    public static function setSecondsInAdvanceToScheduleRotations($val) {
+        self::setValue("rotation_scheduling_advance_seconds", $val);
+    }
 }

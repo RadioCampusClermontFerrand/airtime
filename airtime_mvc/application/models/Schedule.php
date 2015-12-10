@@ -1133,9 +1133,11 @@ SQL;
      *
      */
     public static function scheduleRotations() {
-        $now = gmdate(DEFAULT_TIMESTAMP_FORMAT);
+        $timeInAdvance = Application_Model_Preference::getSecondsInAdvanceToScheduleRotations();
+        $now = gmdate(DEFAULT_TIMESTAMP_FORMAT, time() + $timeInAdvance);
         $nextInstance = CcShowInstancesQuery::create()
-            ->filterByDbEnds($now, Criteria::GREATER_THAN)
+            ->filterByDbStarts($now, Criteria::LESS_EQUAL)
+            ->orderByDbStarts(Criteria::DESC)
             ->findOne();
         if ($nextInstance && !empty($nextInstance->getDbRotation()) && !$nextInstance->getDbRotationScheduled()) {
             self::scheduleRotation($nextInstance);
