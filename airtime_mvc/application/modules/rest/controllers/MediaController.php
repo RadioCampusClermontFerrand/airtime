@@ -217,6 +217,73 @@ class Rest_MediaController extends Zend_Rest_Controller
 
     }
 
+    /** Show all the times in the schedule the track is at */
+    public function scheduleAction() {
+        $id = $this->getId();
+
+        $scheduleQuery = CcScheduleQuery::create();
+        //$scheduleQuery->joinCcFiles("derpy")->where("")
+        $now = new DateTime("now", new DateTimeZone("UTC"));
+        $scheduleQuery->filterByDbFileId($id)->filterByDbStarts($now, Criteria::GREATER_EQUAL);
+
+        $totalScheduleOccurrencesCount = $scheduleQuery->count();
+
+        // Check if offset and limit were sent with request.
+        // Default limit to zero and offset to $totalFileCount
+        $offset = $this->_getParam('offset', 0);
+        $limit = $this->_getParam('limit', $totalScheduleOccurrencesCount);
+
+        //Sorting parameters
+        $sortColumn = $this->_getParam('sort', CcSchedulePeer::STARTS);
+        $sortDir = $this->_getParam('sort_dir', Criteria::ASC);
+
+        $query = $scheduleQuery->joinWith('CcSchedule.CcFiles') //pre-hydrate to avoid N-queries
+            ->joinWith('CcSchedule.CcShowInstances')
+            ->joinWith('CcShowInstances.CcShow')
+            ->setLimit($limit)
+            ->setOffset($offset)
+            ->orderBy($sortColumn, $sortDir);
+
+
+        /*
+        $query = CcFilesQuery::create()
+            ->filterByDbHidden(false)
+            ->filterByDbFileExists(true)
+            ->filterByDbImportStatus(0)
+            ->setLimit($limit)
+            ->setOffset($offset)
+            ->orderBy($sortColumn, $sortDir);
+        */
+        //->orderByDbId();
+
+
+        $queryCount = $query->count();
+        $query->setFormatter(ModelCriteria::FORMAT_ON_DEMAND);
+        $queryResult = $query->find();//->populateRelation('CcFiles'); //Hydrate the related CcFiles objects too!
+
+        $scheduled_items_array = array();
+        foreach ($queryResult as $scheduleItem)
+        {
+            Logging::info(print_r($scheduleItem, true));
+            //TODO: Sanitize responses for CcSchedule, CcShowInstances, and CcShow
+            $scheduleItemArray = $scheduleItem->toArray(BasePeer::TYPE_FIELDNAME, false, array(), false);
+            $scheduleItemArray['file'] = $scheduleItem->getCcFiles()->toArray(BasePeer::TYPE_FIELDNAME, false, array(), false);
+            $scheduleItemArray['show_instance'] = $scheduleItem->getCcShowInstances()->toArray(BasePeer::TYPE_FIELDNAME, false, array(), false);
+            $scheduleItemArray['show'] = $scheduleItem->getCcShowInstances()->getCcShow()->toArray(BasePeer::TYPE_FIELDNAME, false, array(), false);
+
+            array_push($scheduled_items_array, $scheduleItemArray);
+
+            //array_push($files_array, CcFiles::sanitizeResponse($scheduleItem->getCcFiles()));
+        }
+        //$scheduled_items_array = $queryResult->toArray(null, false, BasePeer::TYPE_FIELDNAME, false);
+        //public function toArray($keyColumn = null, $usePrefix = false, $keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array())
+
+        $this->getResponse()
+            ->setHttpResponseCode(200)
+            ->setHeader('X-TOTAL-COUNT', $totalScheduleOccurrencesCount)
+            ->appendBody(json_encode($scheduled_items_array));    }
+
+
     private function getId()
     {
         if (!$id = $this->_getParam('id', false)) {

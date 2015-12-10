@@ -10,7 +10,7 @@ var AIRTIME = (function (AIRTIME) {
     var endpoint = '/rest/podcast/', PodcastEpisodeTable;
 
     /**
-     * PodcastController constructor.
+     * PodcastController is the settings screen for a podcast (Angular controller).
      *
      * @param {angular.scope}   $scope           angular scope service object
      * @param {angular.http}    $http            angular http service object

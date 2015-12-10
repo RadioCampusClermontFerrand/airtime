@@ -784,7 +784,7 @@ th.library_checkbox {
     border: none;
 }
 
-.dataTables_scrolling {
+#library_display_wrapper > div.dataTables_scrolling,  #show_builder_table_wrapper {
     position: absolute;
     bottom: 37px;
     top: 38px;

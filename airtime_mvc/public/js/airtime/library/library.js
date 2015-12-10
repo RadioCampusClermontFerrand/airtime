@@ -1130,6 +1130,14 @@ var AIRTIME = (function(AIRTIME) {
                         oItems.pl_add.callback = callback;
                     }
 
+                    oItems.viewInSchedule = { 'name' : 'View in Schedule',
+                        'callback' : function() {
+                            $("#schedule-track-filter-view").dialog({'width' : '80%', 'height' : 'auto', 'title': "Playout Schedule for Track: " + data.track_title});
+                            var domNode = ("#schedule-track-filter-view table:first");
+                            AIRTIME.ScheduleTrackFilterView.initialize(data.id, domNode);
+                        }
+                    };
+
                     // define an edit callback.
                     if (oItems.edit !== undefined) {
                         if (data.ftype === "audioclip") {

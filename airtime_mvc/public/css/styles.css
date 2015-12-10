@@ -1080,6 +1080,11 @@ input[type="checkbox"] {
     width:13px;
     height:13px;
 }
+
+
+#schedule-track-filter-view > table, #schedule-track-filter-view > .dataTables_wrapper{
+    min-height: 300px;
+}
 /*---//////////////////// LOGIN & PASSWORD RESET  ////////////////////---*/
 
 /* Remove any visible csrf form token footprint */

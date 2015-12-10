@@ -122,5 +122,19 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
             )
         );
         $router->addRoute('publish-sources', $publishSourcesRoute);
+
+        $scheduleTimesRoute = new Zend_Controller_Router_Route(
+            'rest/media/:id/schedule',
+            array(
+                'controller' => 'media',
+                'action' => 'schedule',
+                'module' => 'rest'
+            ),
+            array(
+                'id' => '\d+'
+            )
+        );
+        $router->addRoute('schdeule', $scheduleTimesRoute);
+
     }
 }
