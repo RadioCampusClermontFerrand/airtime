@@ -787,12 +787,13 @@ DROP TABLE IF EXISTS "listener_stats" CASCADE;
 CREATE TABLE "listener_stats"
 (
     "id" serial NOT NULL,
+    "connect_timestamp" TIMESTAMP NOT NULL,
     "disconnect_timestamp" TIMESTAMP NOT NULL,
+    "session_duration" INTERVAL DEFAULT '00:00:00' NOT NULL,
     "ip" VARCHAR(256) NOT NULL,
     "city" VARCHAR(256),
     "country_name" VARCHAR(256),
     "country_iso_code" VARCHAR(256),
-    "session_duration" INTEGER NOT NULL,
     "mount" VARCHAR(256) NOT NULL,
     "bytes" INTEGER NOT NULL,
     "referrer" VARCHAR(4096),

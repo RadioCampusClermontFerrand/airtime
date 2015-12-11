@@ -25,11 +25,16 @@ class ListenerStats extends BaseListenerStats
 {
     public static function create($data)
     {
+        $sessionDurationSeconds = $data->session_duration;
+        $sessionStart = new DateTime($data->timestamp, 'utc');
+        $sessionStart->modify(sprintf("-%s seconds", $sessionDurationSeconds));
+
         $listenerStat = new ListenerStats();
         $listenerStat->setDbBytes($data->bytes)
             ->setDbDisconnectTimestamp($data->timestamp)
-            ->setDbIp($data->client_ip)
+            ->setDbConnectTimestamp($sessionStart)
             ->setDbSessionDuration($data->session_duration)
+            ->setDbIp($data->client_ip)
             ->setDbMount($data->mount)
             ->setDbUserAgent($data->user_agent)
             ->setDbReferrer($data->referrer)
@@ -130,7 +135,8 @@ class ListenerStats extends BaseListenerStats
     {
         $stats = self::getAggregatePeriodDataPoints($start, $end);
 
-        return $stats->toArray();
+        Logging::info($stats);
+        return $stats; //->toArray();
     }
 
     /**
@@ -151,6 +157,29 @@ class ListenerStats extends BaseListenerStats
      */
     private static function getAggregatePeriodDataPoints($start, $end)
     {
+        $sql = 'SELECT
+                    EXTRACT(epoch from date)*1000, -- The Float library needs a JavaScript timestamp. This gives us that.
+                    EXTRACT(epoch from SUM(session_duration))/3600 as "total_listener_hours"
+                FROM (
+                    SELECT date(disconnect_timestamp) as date, session_duration
+                    FROM listener_stats
+                      WHERE (connect_timestamp, disconnect_timestamp) OVERLAPS (:start, :end)
+                      GROUP BY date(disconnect_timestamp), disconnect_timestamp, session_duration, date
+                      ORDER BY disconnect_timestamp ASC
+                    ) t GROUP BY date ORDER BY date';
+
+        $sqlParams = array(":start" => $start, ":end" => $end);
+        $conn = Propel::getConnection();
+        $st = $conn->prepare($sql);
+        foreach ($sqlParams as $key => $value) {
+            $st->bindValue($key, $value);
+        }
+        $st->execute();
+
+        return $st->fetchAll(PDO::FETCH_KEY_PAIR);
+
+
+        /*
         $statsQuery = ListenerStatsQuery::create()
             ->select(array('session_duration', 'date'))
             ->withColumn('sum(session_duration)', 'session_duration')
@@ -163,6 +192,7 @@ class ListenerStats extends BaseListenerStats
         }
 
         return $statsQuery->find();
+        */
     }
 
     public static function getMostPopularShows($start, $end) {

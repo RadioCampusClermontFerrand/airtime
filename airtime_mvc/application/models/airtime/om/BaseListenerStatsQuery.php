@@ -7,24 +7,26 @@
  *
  *
  * @method ListenerStatsQuery orderByDbId($order = Criteria::ASC) Order by the id column
+ * @method ListenerStatsQuery orderByDbConnectTimestamp($order = Criteria::ASC) Order by the connect_timestamp column
  * @method ListenerStatsQuery orderByDbDisconnectTimestamp($order = Criteria::ASC) Order by the disconnect_timestamp column
+ * @method ListenerStatsQuery orderByDbSessionDuration($order = Criteria::ASC) Order by the session_duration column
  * @method ListenerStatsQuery orderByDbIp($order = Criteria::ASC) Order by the ip column
  * @method ListenerStatsQuery orderByDbCity($order = Criteria::ASC) Order by the city column
  * @method ListenerStatsQuery orderByDbCountryName($order = Criteria::ASC) Order by the country_name column
  * @method ListenerStatsQuery orderByDbCountryIsoCode($order = Criteria::ASC) Order by the country_iso_code column
- * @method ListenerStatsQuery orderByDbSessionDuration($order = Criteria::ASC) Order by the session_duration column
  * @method ListenerStatsQuery orderByDbMount($order = Criteria::ASC) Order by the mount column
  * @method ListenerStatsQuery orderByDbBytes($order = Criteria::ASC) Order by the bytes column
  * @method ListenerStatsQuery orderByDbReferrer($order = Criteria::ASC) Order by the referrer column
  * @method ListenerStatsQuery orderByDbUserAgent($order = Criteria::ASC) Order by the user_agent column
  *
  * @method ListenerStatsQuery groupByDbId() Group by the id column
+ * @method ListenerStatsQuery groupByDbConnectTimestamp() Group by the connect_timestamp column
  * @method ListenerStatsQuery groupByDbDisconnectTimestamp() Group by the disconnect_timestamp column
+ * @method ListenerStatsQuery groupByDbSessionDuration() Group by the session_duration column
  * @method ListenerStatsQuery groupByDbIp() Group by the ip column
  * @method ListenerStatsQuery groupByDbCity() Group by the city column
  * @method ListenerStatsQuery groupByDbCountryName() Group by the country_name column
  * @method ListenerStatsQuery groupByDbCountryIsoCode() Group by the country_iso_code column
- * @method ListenerStatsQuery groupByDbSessionDuration() Group by the session_duration column
  * @method ListenerStatsQuery groupByDbMount() Group by the mount column
  * @method ListenerStatsQuery groupByDbBytes() Group by the bytes column
  * @method ListenerStatsQuery groupByDbReferrer() Group by the referrer column
@@ -37,24 +39,26 @@
  * @method ListenerStats findOne(PropelPDO $con = null) Return the first ListenerStats matching the query
  * @method ListenerStats findOneOrCreate(PropelPDO $con = null) Return the first ListenerStats matching the query, or a new ListenerStats object populated from the query conditions when no match is found
  *
+ * @method ListenerStats findOneByDbConnectTimestamp(string $connect_timestamp) Return the first ListenerStats filtered by the connect_timestamp column
  * @method ListenerStats findOneByDbDisconnectTimestamp(string $disconnect_timestamp) Return the first ListenerStats filtered by the disconnect_timestamp column
+ * @method ListenerStats findOneByDbSessionDuration(string $session_duration) Return the first ListenerStats filtered by the session_duration column
  * @method ListenerStats findOneByDbIp(string $ip) Return the first ListenerStats filtered by the ip column
  * @method ListenerStats findOneByDbCity(string $city) Return the first ListenerStats filtered by the city column
  * @method ListenerStats findOneByDbCountryName(string $country_name) Return the first ListenerStats filtered by the country_name column
  * @method ListenerStats findOneByDbCountryIsoCode(string $country_iso_code) Return the first ListenerStats filtered by the country_iso_code column
- * @method ListenerStats findOneByDbSessionDuration(int $session_duration) Return the first ListenerStats filtered by the session_duration column
  * @method ListenerStats findOneByDbMount(string $mount) Return the first ListenerStats filtered by the mount column
  * @method ListenerStats findOneByDbBytes(int $bytes) Return the first ListenerStats filtered by the bytes column
  * @method ListenerStats findOneByDbReferrer(string $referrer) Return the first ListenerStats filtered by the referrer column
  * @method ListenerStats findOneByDbUserAgent(string $user_agent) Return the first ListenerStats filtered by the user_agent column
  *
  * @method array findByDbId(int $id) Return ListenerStats objects filtered by the id column
+ * @method array findByDbConnectTimestamp(string $connect_timestamp) Return ListenerStats objects filtered by the connect_timestamp column
  * @method array findByDbDisconnectTimestamp(string $disconnect_timestamp) Return ListenerStats objects filtered by the disconnect_timestamp column
+ * @method array findByDbSessionDuration(string $session_duration) Return ListenerStats objects filtered by the session_duration column
  * @method array findByDbIp(string $ip) Return ListenerStats objects filtered by the ip column
  * @method array findByDbCity(string $city) Return ListenerStats objects filtered by the city column
  * @method array findByDbCountryName(string $country_name) Return ListenerStats objects filtered by the country_name column
  * @method array findByDbCountryIsoCode(string $country_iso_code) Return ListenerStats objects filtered by the country_iso_code column
- * @method array findByDbSessionDuration(int $session_duration) Return ListenerStats objects filtered by the session_duration column
  * @method array findByDbMount(string $mount) Return ListenerStats objects filtered by the mount column
  * @method array findByDbBytes(int $bytes) Return ListenerStats objects filtered by the bytes column
  * @method array findByDbReferrer(string $referrer) Return ListenerStats objects filtered by the referrer column
@@ -166,7 +170,7 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
      */
     protected function findPkSimple($key, $con)
     {
-        $sql = 'SELECT "id", "disconnect_timestamp", "ip", "city", "country_name", "country_iso_code", "session_duration", "mount", "bytes", "referrer", "user_agent" FROM "listener_stats" WHERE "id" = :p0';
+        $sql = 'SELECT "id", "connect_timestamp", "disconnect_timestamp", "session_duration", "ip", "city", "country_name", "country_iso_code", "mount", "bytes", "referrer", "user_agent" FROM "listener_stats" WHERE "id" = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -298,6 +302,49 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query on the connect_timestamp column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDbConnectTimestamp('2011-03-14'); // WHERE connect_timestamp = '2011-03-14'
+     * $query->filterByDbConnectTimestamp('now'); // WHERE connect_timestamp = '2011-03-14'
+     * $query->filterByDbConnectTimestamp(array('max' => 'yesterday')); // WHERE connect_timestamp < '2011-03-13'
+     * </code>
+     *
+     * @param     mixed $dbConnectTimestamp The value to use as filter.
+     *              Values can be integers (unix timestamps), DateTime objects, or strings.
+     *              Empty strings are treated as NULL.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ListenerStatsQuery The current query, for fluid interface
+     */
+    public function filterByDbConnectTimestamp($dbConnectTimestamp = null, $comparison = null)
+    {
+        if (is_array($dbConnectTimestamp)) {
+            $useMinMax = false;
+            if (isset($dbConnectTimestamp['min'])) {
+                $this->addUsingAlias(ListenerStatsPeer::CONNECT_TIMESTAMP, $dbConnectTimestamp['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($dbConnectTimestamp['max'])) {
+                $this->addUsingAlias(ListenerStatsPeer::CONNECT_TIMESTAMP, $dbConnectTimestamp['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(ListenerStatsPeer::CONNECT_TIMESTAMP, $dbConnectTimestamp, $comparison);
+    }
+
+    /**
      * Filter the query on the disconnect_timestamp column
      *
      * Example usage:
@@ -338,6 +385,35 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(ListenerStatsPeer::DISCONNECT_TIMESTAMP, $dbDisconnectTimestamp, $comparison);
+    }
+
+    /**
+     * Filter the query on the session_duration column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDbSessionDuration('fooValue');   // WHERE session_duration = 'fooValue'
+     * $query->filterByDbSessionDuration('%fooValue%'); // WHERE session_duration LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $dbSessionDuration The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ListenerStatsQuery The current query, for fluid interface
+     */
+    public function filterByDbSessionDuration($dbSessionDuration = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($dbSessionDuration)) {
+                $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $dbSessionDuration)) {
+                $dbSessionDuration = str_replace('*', '%', $dbSessionDuration);
+                $comparison = Criteria::LIKE;
+            }
+        }
+
+        return $this->addUsingAlias(ListenerStatsPeer::SESSION_DURATION, $dbSessionDuration, $comparison);
     }
 
     /**
@@ -454,48 +530,6 @@ abstract class BaseListenerStatsQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(ListenerStatsPeer::COUNTRY_ISO_CODE, $dbCountryIsoCode, $comparison);
-    }
-
-    /**
-     * Filter the query on the session_duration column
-     *
-     * Example usage:
-     * <code>
-     * $query->filterByDbSessionDuration(1234); // WHERE session_duration = 1234
-     * $query->filterByDbSessionDuration(array(12, 34)); // WHERE session_duration IN (12, 34)
-     * $query->filterByDbSessionDuration(array('min' => 12)); // WHERE session_duration >= 12
-     * $query->filterByDbSessionDuration(array('max' => 12)); // WHERE session_duration <= 12
-     * </code>
-     *
-     * @param     mixed $dbSessionDuration The value to use as filter.
-     *              Use scalar values for equality.
-     *              Use array values for in_array() equivalent.
-     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return ListenerStatsQuery The current query, for fluid interface
-     */
-    public function filterByDbSessionDuration($dbSessionDuration = null, $comparison = null)
-    {
-        if (is_array($dbSessionDuration)) {
-            $useMinMax = false;
-            if (isset($dbSessionDuration['min'])) {
-                $this->addUsingAlias(ListenerStatsPeer::SESSION_DURATION, $dbSessionDuration['min'], Criteria::GREATER_EQUAL);
-                $useMinMax = true;
-            }
-            if (isset($dbSessionDuration['max'])) {
-                $this->addUsingAlias(ListenerStatsPeer::SESSION_DURATION, $dbSessionDuration['max'], Criteria::LESS_EQUAL);
-                $useMinMax = true;
-            }
-            if ($useMinMax) {
-                return $this;
-            }
-            if (null === $comparison) {
-                $comparison = Criteria::IN;
-            }
-        }
-
-        return $this->addUsingAlias(ListenerStatsPeer::SESSION_DURATION, $dbSessionDuration, $comparison);
     }
 
     /**

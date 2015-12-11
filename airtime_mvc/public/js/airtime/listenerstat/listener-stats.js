@@ -63,7 +63,7 @@ var AIRTIME = (function(AIRTIME) {
             [],    //Toolbar buttons
             {                    //Datatables overrides.
                 'aoColumns' : aoColumns,
-                'sAjaxSource' : 'http://localhost/rest/listener-stats/most-popular-shows'
+                'sAjaxSource' : 'rest/listener-stats/most-popular-shows'
             },
             {'html' : 'No popular shows found.'},
             extraAjaxParams
@@ -78,24 +78,35 @@ var AIRTIME = (function(AIRTIME) {
 
             var data_sets = [];
             $.each(data, function(k, v) {
-                var minutes = (v.session_duration)/60;
-                var d = new Date(v.date);
-                var list = [d, minutes];
-                data_sets.push(list);
+                //var minutes = (v.session_duration)/60;
+                //var d = new Date(v.date);
+                //var list = [d, minutes];
+                var dataPointArray = [k, parseFloat(v)];
+                data_sets.push(dataPointArray);
             });
 
-            var tick_size = 60*60*24;
+            /*
+            $.each(data, function(k, v) {
+                data[k] = parseFloat(v);
+            });*/
+
+            var tick_size = 1;
             var options = {
                 series: {
                     lines: { show: true, fill: 0.3 },
                     points: { show: true }
                 },
-                yaxis: { min: 0, tickDecimals: 0 },
-                xaxis: { mode: "time", timeformat: "%Y-%m-%d", tickSize: [tick_size, "second"]}
+                yaxis: { min: 0, label: "Total Listener Hours"},
+                xaxis: { mode: "time", timeformat: "%Y-%m-%d",
+                        min: new Date(start).getTime(),
+                        max: new Date(end).getTime(),
+                        tickSize: [tick_size, "day"]
+                }
             };
 
             var flot_data = [];
-            flot_data.push({data: data_sets});
+            flot_data.push({label: "Listener Hours", data: data_sets, hoverable: true});
+            console.log(data);
 
             $.plot($("#aggregate-tuning"), flot_data, options);
         });

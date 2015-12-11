@@ -36,10 +36,23 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     protected $id;
 
     /**
+     * The value for the connect_timestamp field.
+     * @var        string
+     */
+    protected $connect_timestamp;
+
+    /**
      * The value for the disconnect_timestamp field.
      * @var        string
      */
     protected $disconnect_timestamp;
+
+    /**
+     * The value for the session_duration field.
+     * Note: this column has a database default value of: '00:00:00'
+     * @var        string
+     */
+    protected $session_duration;
 
     /**
      * The value for the ip field.
@@ -64,12 +77,6 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
      * @var        string
      */
     protected $country_iso_code;
-
-    /**
-     * The value for the session_duration field.
-     * @var        int
-     */
-    protected $session_duration;
 
     /**
      * The value for the mount field.
@@ -116,6 +123,27 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     protected $alreadyInClearAllReferencesDeep = false;
 
     /**
+     * Applies default values to this object.
+     * This method should be called from the object's constructor (or
+     * equivalent initialization method).
+     * @see        __construct()
+     */
+    public function applyDefaultValues()
+    {
+        $this->session_duration = '00:00:00';
+    }
+
+    /**
+     * Initializes internal state of BaseListenerStats object.
+     * @see        applyDefaults()
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->applyDefaultValues();
+    }
+
+    /**
      * Get the [id] column value.
      *
      * @return int
@@ -124,6 +152,41 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     {
 
         return $this->id;
+    }
+
+    /**
+     * Get the [optionally formatted] temporal [connect_timestamp] column value.
+     *
+     *
+     * @param string $format The date/time format string (either date()-style or strftime()-style).
+     *				 If format is null, then the raw DateTime object will be returned.
+     * @return mixed Formatted date/time value as string or DateTime object (if format is null), null if column is null
+     * @throws PropelException - if unable to parse/validate the date/time value.
+     */
+    public function getDbConnectTimestamp($format = 'Y-m-d H:i:s')
+    {
+        if ($this->connect_timestamp === null) {
+            return null;
+        }
+
+
+        try {
+            $dt = new DateTime($this->connect_timestamp);
+        } catch (Exception $x) {
+            throw new PropelException("Internally stored date/time/timestamp value could not be converted to DateTime: " . var_export($this->connect_timestamp, true), $x);
+        }
+
+        if ($format === null) {
+            // Because propel.useDateTimeClass is true, we return a DateTime object.
+            return $dt;
+        }
+
+        if (strpos($format, '%') !== false) {
+            return strftime($format, $dt->format('U'));
+        }
+
+        return $dt->format($format);
+
     }
 
     /**
@@ -159,6 +222,17 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
 
         return $dt->format($format);
 
+    }
+
+    /**
+     * Get the [session_duration] column value.
+     *
+     * @return string
+     */
+    public function getDbSessionDuration()
+    {
+
+        return $this->session_duration;
     }
 
     /**
@@ -203,17 +277,6 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     {
 
         return $this->country_iso_code;
-    }
-
-    /**
-     * Get the [session_duration] column value.
-     *
-     * @return int
-     */
-    public function getDbSessionDuration()
-    {
-
-        return $this->session_duration;
     }
 
     /**
@@ -282,6 +345,29 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     } // setDbId()
 
     /**
+     * Sets the value of [connect_timestamp] column to a normalized version of the date/time value specified.
+     *
+     * @param mixed $v string, integer (timestamp), or DateTime value.
+     *               Empty strings are treated as null.
+     * @return ListenerStats The current object (for fluent API support)
+     */
+    public function setDbConnectTimestamp($v)
+    {
+        $dt = PropelDateTime::newInstance($v, null, 'DateTime');
+        if ($this->connect_timestamp !== null || $dt !== null) {
+            $currentDateAsString = ($this->connect_timestamp !== null && $tmpDt = new DateTime($this->connect_timestamp)) ? $tmpDt->format('Y-m-d H:i:s') : null;
+            $newDateAsString = $dt ? $dt->format('Y-m-d H:i:s') : null;
+            if ($currentDateAsString !== $newDateAsString) {
+                $this->connect_timestamp = $newDateAsString;
+                $this->modifiedColumns[] = ListenerStatsPeer::CONNECT_TIMESTAMP;
+            }
+        } // if either are not null
+
+
+        return $this;
+    } // setDbConnectTimestamp()
+
+    /**
      * Sets the value of [disconnect_timestamp] column to a normalized version of the date/time value specified.
      *
      * @param mixed $v string, integer (timestamp), or DateTime value.
@@ -303,6 +389,27 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
 
         return $this;
     } // setDbDisconnectTimestamp()
+
+    /**
+     * Set the value of [session_duration] column.
+     *
+     * @param  string $v new value
+     * @return ListenerStats The current object (for fluent API support)
+     */
+    public function setDbSessionDuration($v)
+    {
+        if ($v !== null && is_numeric($v)) {
+            $v = (string) $v;
+        }
+
+        if ($this->session_duration !== $v) {
+            $this->session_duration = $v;
+            $this->modifiedColumns[] = ListenerStatsPeer::SESSION_DURATION;
+        }
+
+
+        return $this;
+    } // setDbSessionDuration()
 
     /**
      * Set the value of [ip] column.
@@ -387,27 +494,6 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
 
         return $this;
     } // setDbCountryIsoCode()
-
-    /**
-     * Set the value of [session_duration] column.
-     *
-     * @param  int $v new value
-     * @return ListenerStats The current object (for fluent API support)
-     */
-    public function setDbSessionDuration($v)
-    {
-        if ($v !== null && is_numeric($v)) {
-            $v = (int) $v;
-        }
-
-        if ($this->session_duration !== $v) {
-            $this->session_duration = $v;
-            $this->modifiedColumns[] = ListenerStatsPeer::SESSION_DURATION;
-        }
-
-
-        return $this;
-    } // setDbSessionDuration()
 
     /**
      * Set the value of [mount] column.
@@ -503,6 +589,10 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
      */
     public function hasOnlyDefaultValues()
     {
+            if ($this->session_duration !== '00:00:00') {
+                return false;
+            }
+
         // otherwise, everything was equal, so return true
         return true;
     } // hasOnlyDefaultValues()
@@ -526,16 +616,17 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         try {
 
             $this->id = ($row[$startcol + 0] !== null) ? (int) $row[$startcol + 0] : null;
-            $this->disconnect_timestamp = ($row[$startcol + 1] !== null) ? (string) $row[$startcol + 1] : null;
-            $this->ip = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
-            $this->city = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
-            $this->country_name = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
-            $this->country_iso_code = ($row[$startcol + 5] !== null) ? (string) $row[$startcol + 5] : null;
-            $this->session_duration = ($row[$startcol + 6] !== null) ? (int) $row[$startcol + 6] : null;
-            $this->mount = ($row[$startcol + 7] !== null) ? (string) $row[$startcol + 7] : null;
-            $this->bytes = ($row[$startcol + 8] !== null) ? (int) $row[$startcol + 8] : null;
-            $this->referrer = ($row[$startcol + 9] !== null) ? (string) $row[$startcol + 9] : null;
-            $this->user_agent = ($row[$startcol + 10] !== null) ? (string) $row[$startcol + 10] : null;
+            $this->connect_timestamp = ($row[$startcol + 1] !== null) ? (string) $row[$startcol + 1] : null;
+            $this->disconnect_timestamp = ($row[$startcol + 2] !== null) ? (string) $row[$startcol + 2] : null;
+            $this->session_duration = ($row[$startcol + 3] !== null) ? (string) $row[$startcol + 3] : null;
+            $this->ip = ($row[$startcol + 4] !== null) ? (string) $row[$startcol + 4] : null;
+            $this->city = ($row[$startcol + 5] !== null) ? (string) $row[$startcol + 5] : null;
+            $this->country_name = ($row[$startcol + 6] !== null) ? (string) $row[$startcol + 6] : null;
+            $this->country_iso_code = ($row[$startcol + 7] !== null) ? (string) $row[$startcol + 7] : null;
+            $this->mount = ($row[$startcol + 8] !== null) ? (string) $row[$startcol + 8] : null;
+            $this->bytes = ($row[$startcol + 9] !== null) ? (int) $row[$startcol + 9] : null;
+            $this->referrer = ($row[$startcol + 10] !== null) ? (string) $row[$startcol + 10] : null;
+            $this->user_agent = ($row[$startcol + 11] !== null) ? (string) $row[$startcol + 11] : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -545,7 +636,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
             }
             $this->postHydrate($row, $startcol, $rehydrate);
 
-            return $startcol + 11; // 11 = ListenerStatsPeer::NUM_HYDRATE_COLUMNS.
+            return $startcol + 12; // 12 = ListenerStatsPeer::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException("Error populating ListenerStats object", $e);
@@ -770,8 +861,14 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         if ($this->isColumnModified(ListenerStatsPeer::ID)) {
             $modifiedColumns[':p' . $index++]  = '"id"';
         }
+        if ($this->isColumnModified(ListenerStatsPeer::CONNECT_TIMESTAMP)) {
+            $modifiedColumns[':p' . $index++]  = '"connect_timestamp"';
+        }
         if ($this->isColumnModified(ListenerStatsPeer::DISCONNECT_TIMESTAMP)) {
             $modifiedColumns[':p' . $index++]  = '"disconnect_timestamp"';
+        }
+        if ($this->isColumnModified(ListenerStatsPeer::SESSION_DURATION)) {
+            $modifiedColumns[':p' . $index++]  = '"session_duration"';
         }
         if ($this->isColumnModified(ListenerStatsPeer::IP)) {
             $modifiedColumns[':p' . $index++]  = '"ip"';
@@ -784,9 +881,6 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         }
         if ($this->isColumnModified(ListenerStatsPeer::COUNTRY_ISO_CODE)) {
             $modifiedColumns[':p' . $index++]  = '"country_iso_code"';
-        }
-        if ($this->isColumnModified(ListenerStatsPeer::SESSION_DURATION)) {
-            $modifiedColumns[':p' . $index++]  = '"session_duration"';
         }
         if ($this->isColumnModified(ListenerStatsPeer::MOUNT)) {
             $modifiedColumns[':p' . $index++]  = '"mount"';
@@ -814,8 +908,14 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
                     case '"id"':
                         $stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
                         break;
+                    case '"connect_timestamp"':
+                        $stmt->bindValue($identifier, $this->connect_timestamp, PDO::PARAM_STR);
+                        break;
                     case '"disconnect_timestamp"':
                         $stmt->bindValue($identifier, $this->disconnect_timestamp, PDO::PARAM_STR);
+                        break;
+                    case '"session_duration"':
+                        $stmt->bindValue($identifier, $this->session_duration, PDO::PARAM_STR);
                         break;
                     case '"ip"':
                         $stmt->bindValue($identifier, $this->ip, PDO::PARAM_STR);
@@ -828,9 +928,6 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
                         break;
                     case '"country_iso_code"':
                         $stmt->bindValue($identifier, $this->country_iso_code, PDO::PARAM_STR);
-                        break;
-                    case '"session_duration"':
-                        $stmt->bindValue($identifier, $this->session_duration, PDO::PARAM_INT);
                         break;
                     case '"mount"':
                         $stmt->bindValue($identifier, $this->mount, PDO::PARAM_STR);
@@ -975,33 +1072,36 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
                 return $this->getDbId();
                 break;
             case 1:
-                return $this->getDbDisconnectTimestamp();
+                return $this->getDbConnectTimestamp();
                 break;
             case 2:
-                return $this->getDbIp();
+                return $this->getDbDisconnectTimestamp();
                 break;
             case 3:
-                return $this->getDbCity();
-                break;
-            case 4:
-                return $this->getDbCountryName();
-                break;
-            case 5:
-                return $this->getDbCountryIsoCode();
-                break;
-            case 6:
                 return $this->getDbSessionDuration();
                 break;
+            case 4:
+                return $this->getDbIp();
+                break;
+            case 5:
+                return $this->getDbCity();
+                break;
+            case 6:
+                return $this->getDbCountryName();
+                break;
             case 7:
-                return $this->getDbMount();
+                return $this->getDbCountryIsoCode();
                 break;
             case 8:
-                return $this->getDbBytes();
+                return $this->getDbMount();
                 break;
             case 9:
-                return $this->getDbReferrer();
+                return $this->getDbBytes();
                 break;
             case 10:
+                return $this->getDbReferrer();
+                break;
+            case 11:
                 return $this->getDbUserAgent();
                 break;
             default:
@@ -1033,16 +1133,17 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         $keys = ListenerStatsPeer::getFieldNames($keyType);
         $result = array(
             $keys[0] => $this->getDbId(),
-            $keys[1] => $this->getDbDisconnectTimestamp(),
-            $keys[2] => $this->getDbIp(),
-            $keys[3] => $this->getDbCity(),
-            $keys[4] => $this->getDbCountryName(),
-            $keys[5] => $this->getDbCountryIsoCode(),
-            $keys[6] => $this->getDbSessionDuration(),
-            $keys[7] => $this->getDbMount(),
-            $keys[8] => $this->getDbBytes(),
-            $keys[9] => $this->getDbReferrer(),
-            $keys[10] => $this->getDbUserAgent(),
+            $keys[1] => $this->getDbConnectTimestamp(),
+            $keys[2] => $this->getDbDisconnectTimestamp(),
+            $keys[3] => $this->getDbSessionDuration(),
+            $keys[4] => $this->getDbIp(),
+            $keys[5] => $this->getDbCity(),
+            $keys[6] => $this->getDbCountryName(),
+            $keys[7] => $this->getDbCountryIsoCode(),
+            $keys[8] => $this->getDbMount(),
+            $keys[9] => $this->getDbBytes(),
+            $keys[10] => $this->getDbReferrer(),
+            $keys[11] => $this->getDbUserAgent(),
         );
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -1086,33 +1187,36 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
                 $this->setDbId($value);
                 break;
             case 1:
-                $this->setDbDisconnectTimestamp($value);
+                $this->setDbConnectTimestamp($value);
                 break;
             case 2:
-                $this->setDbIp($value);
+                $this->setDbDisconnectTimestamp($value);
                 break;
             case 3:
-                $this->setDbCity($value);
-                break;
-            case 4:
-                $this->setDbCountryName($value);
-                break;
-            case 5:
-                $this->setDbCountryIsoCode($value);
-                break;
-            case 6:
                 $this->setDbSessionDuration($value);
                 break;
+            case 4:
+                $this->setDbIp($value);
+                break;
+            case 5:
+                $this->setDbCity($value);
+                break;
+            case 6:
+                $this->setDbCountryName($value);
+                break;
             case 7:
-                $this->setDbMount($value);
+                $this->setDbCountryIsoCode($value);
                 break;
             case 8:
-                $this->setDbBytes($value);
+                $this->setDbMount($value);
                 break;
             case 9:
-                $this->setDbReferrer($value);
+                $this->setDbBytes($value);
                 break;
             case 10:
+                $this->setDbReferrer($value);
+                break;
+            case 11:
                 $this->setDbUserAgent($value);
                 break;
         } // switch()
@@ -1140,16 +1244,17 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         $keys = ListenerStatsPeer::getFieldNames($keyType);
 
         if (array_key_exists($keys[0], $arr)) $this->setDbId($arr[$keys[0]]);
-        if (array_key_exists($keys[1], $arr)) $this->setDbDisconnectTimestamp($arr[$keys[1]]);
-        if (array_key_exists($keys[2], $arr)) $this->setDbIp($arr[$keys[2]]);
-        if (array_key_exists($keys[3], $arr)) $this->setDbCity($arr[$keys[3]]);
-        if (array_key_exists($keys[4], $arr)) $this->setDbCountryName($arr[$keys[4]]);
-        if (array_key_exists($keys[5], $arr)) $this->setDbCountryIsoCode($arr[$keys[5]]);
-        if (array_key_exists($keys[6], $arr)) $this->setDbSessionDuration($arr[$keys[6]]);
-        if (array_key_exists($keys[7], $arr)) $this->setDbMount($arr[$keys[7]]);
-        if (array_key_exists($keys[8], $arr)) $this->setDbBytes($arr[$keys[8]]);
-        if (array_key_exists($keys[9], $arr)) $this->setDbReferrer($arr[$keys[9]]);
-        if (array_key_exists($keys[10], $arr)) $this->setDbUserAgent($arr[$keys[10]]);
+        if (array_key_exists($keys[1], $arr)) $this->setDbConnectTimestamp($arr[$keys[1]]);
+        if (array_key_exists($keys[2], $arr)) $this->setDbDisconnectTimestamp($arr[$keys[2]]);
+        if (array_key_exists($keys[3], $arr)) $this->setDbSessionDuration($arr[$keys[3]]);
+        if (array_key_exists($keys[4], $arr)) $this->setDbIp($arr[$keys[4]]);
+        if (array_key_exists($keys[5], $arr)) $this->setDbCity($arr[$keys[5]]);
+        if (array_key_exists($keys[6], $arr)) $this->setDbCountryName($arr[$keys[6]]);
+        if (array_key_exists($keys[7], $arr)) $this->setDbCountryIsoCode($arr[$keys[7]]);
+        if (array_key_exists($keys[8], $arr)) $this->setDbMount($arr[$keys[8]]);
+        if (array_key_exists($keys[9], $arr)) $this->setDbBytes($arr[$keys[9]]);
+        if (array_key_exists($keys[10], $arr)) $this->setDbReferrer($arr[$keys[10]]);
+        if (array_key_exists($keys[11], $arr)) $this->setDbUserAgent($arr[$keys[11]]);
     }
 
     /**
@@ -1162,12 +1267,13 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         $criteria = new Criteria(ListenerStatsPeer::DATABASE_NAME);
 
         if ($this->isColumnModified(ListenerStatsPeer::ID)) $criteria->add(ListenerStatsPeer::ID, $this->id);
+        if ($this->isColumnModified(ListenerStatsPeer::CONNECT_TIMESTAMP)) $criteria->add(ListenerStatsPeer::CONNECT_TIMESTAMP, $this->connect_timestamp);
         if ($this->isColumnModified(ListenerStatsPeer::DISCONNECT_TIMESTAMP)) $criteria->add(ListenerStatsPeer::DISCONNECT_TIMESTAMP, $this->disconnect_timestamp);
+        if ($this->isColumnModified(ListenerStatsPeer::SESSION_DURATION)) $criteria->add(ListenerStatsPeer::SESSION_DURATION, $this->session_duration);
         if ($this->isColumnModified(ListenerStatsPeer::IP)) $criteria->add(ListenerStatsPeer::IP, $this->ip);
         if ($this->isColumnModified(ListenerStatsPeer::CITY)) $criteria->add(ListenerStatsPeer::CITY, $this->city);
         if ($this->isColumnModified(ListenerStatsPeer::COUNTRY_NAME)) $criteria->add(ListenerStatsPeer::COUNTRY_NAME, $this->country_name);
         if ($this->isColumnModified(ListenerStatsPeer::COUNTRY_ISO_CODE)) $criteria->add(ListenerStatsPeer::COUNTRY_ISO_CODE, $this->country_iso_code);
-        if ($this->isColumnModified(ListenerStatsPeer::SESSION_DURATION)) $criteria->add(ListenerStatsPeer::SESSION_DURATION, $this->session_duration);
         if ($this->isColumnModified(ListenerStatsPeer::MOUNT)) $criteria->add(ListenerStatsPeer::MOUNT, $this->mount);
         if ($this->isColumnModified(ListenerStatsPeer::BYTES)) $criteria->add(ListenerStatsPeer::BYTES, $this->bytes);
         if ($this->isColumnModified(ListenerStatsPeer::REFERRER)) $criteria->add(ListenerStatsPeer::REFERRER, $this->referrer);
@@ -1235,12 +1341,13 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
      */
     public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
     {
+        $copyObj->setDbConnectTimestamp($this->getDbConnectTimestamp());
         $copyObj->setDbDisconnectTimestamp($this->getDbDisconnectTimestamp());
+        $copyObj->setDbSessionDuration($this->getDbSessionDuration());
         $copyObj->setDbIp($this->getDbIp());
         $copyObj->setDbCity($this->getDbCity());
         $copyObj->setDbCountryName($this->getDbCountryName());
         $copyObj->setDbCountryIsoCode($this->getDbCountryIsoCode());
-        $copyObj->setDbSessionDuration($this->getDbSessionDuration());
         $copyObj->setDbMount($this->getDbMount());
         $copyObj->setDbBytes($this->getDbBytes());
         $copyObj->setDbReferrer($this->getDbReferrer());
@@ -1297,12 +1404,13 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
     public function clear()
     {
         $this->id = null;
+        $this->connect_timestamp = null;
         $this->disconnect_timestamp = null;
+        $this->session_duration = null;
         $this->ip = null;
         $this->city = null;
         $this->country_name = null;
         $this->country_iso_code = null;
-        $this->session_duration = null;
         $this->mount = null;
         $this->bytes = null;
         $this->referrer = null;
@@ -1311,6 +1419,7 @@ abstract class BaseListenerStats extends BaseObject implements Persistent
         $this->alreadyInValidation = false;
         $this->alreadyInClearAllReferencesDeep = false;
         $this->clearAllReferences();
+        $this->applyDefaultValues();
         $this->resetModified();
         $this->setNew(true);
         $this->setDeleted(false);
