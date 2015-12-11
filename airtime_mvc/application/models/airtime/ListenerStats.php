@@ -5,6 +5,12 @@ use GeoIp2\Database\Reader;
 class ListenerStatNotFoundException extends Exception {}
 
 /**
+ * TODO:
+ * - Fix windowing - We're currently aggregating only listeners that disconnect within the time range.
+ * - Handle timezones correctly. We should convert the timezone that comes from the front-end into UTC.
+ */
+
+/**
  * Skeleton subclass for representing a row from the 'listener_stats' table.
  *
  *
