@@ -19,6 +19,7 @@ $(document).ready(function() {
         var end = oRange.end;
         getDataAndPlot(start, end);
     });
+
 });
 
 /**
@@ -27,6 +28,7 @@ $(document).ready(function() {
 function toggleOverlay() {
     $('#flot_placeholder').toggleClass('processing');
 }
+
 
 function getDataAndPlot(startTimestamp, endTimestamp) {
     // Turn on the processing overlay

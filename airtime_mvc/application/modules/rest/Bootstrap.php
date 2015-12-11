@@ -46,6 +46,16 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
             )
         );
         $router->addRoute('listener-stats-aggregate-tuning', $listenerStatsGeolocation);
+
+        $listenerStatsMostPopularShows = new Zend_Controller_Router_Route(
+            'rest/listener-stats/most-popular-shows',
+            array(
+                'controller' => 'listener-stats',
+                'action' => 'most-popular-shows',
+                'module' => 'rest'
+            )
+        );
+        $router->addRoute('listener-stats-most-popular-shows', $listenerStatsMostPopularShows);
         /*********** LISTENER STAT ROUTES END ******************/
 
         $podcastBulkRoute = new Zend_Controller_Router_Route(

@@ -115,6 +115,24 @@ class Rest_ListenerStatsController extends Zend_Rest_Controller
             ->appendBody(json_encode(ListenerStats::getAggregateTuningHours($start, $end)));
     }
 
+    public function mostPopularShowsAction()
+    {
+        $start = $this->_getParam('start', null);
+        $end = $this->_getParam('end', null);
+
+        if (!$this->validateDateRange($start, $end)) {
+            return;
+        }
+
+        list($mostPopularShows, $totalPopularShows) = ListenerStats::getMostPopularShows($start, $end);
+
+        $this->getResponse()
+            ->setHttpResponseCode(201)
+            ->setHeader('X-TOTAL-COUNT', $totalPopularShows)
+            ->appendBody(json_encode($mostPopularShows));
+    }
+
+
     private function validateDateRange($start, $end)
     {
         $timestampRegex = "/^[0-9]{1,4}-[0-9]{1,2}-[0-9]{1,2}( [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2})?$/";

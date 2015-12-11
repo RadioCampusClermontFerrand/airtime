@@ -15,7 +15,13 @@
  */
 class CcShowInstances extends BaseCcShowInstances {
 
- /**
+    //Fields we should never expose through our RESTful API
+    private static $privateFields = array(
+        'live_stream_pass'
+    );
+
+
+    /**
      * Get the [optionally formatted] temporal [starts] column value.
      *
      *
@@ -212,6 +218,20 @@ class CcShowInstances extends BaseCcShowInstances {
     {
         $startDT = $this->getDbStarts(null);
         return $startDT->setTimezone(new DateTimeZone(Application_Model_Preference::GetTimezone()));
+    }
+
+    public static function sanitizeResponse($showInstance)
+    {
+        if (!is_array($showInstance)) {
+            $response = $showInstance->toArray(BasePeer::TYPE_FIELDNAME);
+        } else {
+            $response = $showInstance;
+        }
+        foreach (self::$privateFields as $key) {
+            unset($response[$key]);
+        }
+
+        return $response;
     }
 
 } // CcShowInstances

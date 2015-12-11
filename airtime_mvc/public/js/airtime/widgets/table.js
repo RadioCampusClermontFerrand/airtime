@@ -20,11 +20,13 @@ var AIRTIME = (function(AIRTIME) {
      * @param {Object} [emptyPlaceholder]
      * @param {string} emptyPlaceholder.html
      * @param {string} emptyPlaceholder.iconClass
+     * @param {Object} extraAjaxData - Extra parameters to be passed to your REST API when we do an AJAX GET.
+     *
      *
      * @returns {Table}
      * @constructor
      */
-    var Table = function(wrapperDOMNode, bItemSelection, toolbarButtons, dataTablesOptions, emptyPlaceholder) {
+    var Table = function(wrapperDOMNode, bItemSelection, toolbarButtons, dataTablesOptions, emptyPlaceholder, extraAjaxParameters) {
 
         var self = this;
 
@@ -49,6 +51,7 @@ var AIRTIME = (function(AIRTIME) {
         self._$wrapperDOMNode = $(wrapperDOMNode);
         self._toolbarButtons = toolbarButtons;
         self._emptyPlaceholder = emptyPlaceholder;
+        self._extraAjaxParameters = extraAjaxParameters; //Extra AJAX GET parameters
 
         // Exclude the leftmost column if we're implementing item selection
         self._colVisExcludeColumns = bItemSelection ? [0] : [];
@@ -422,18 +425,22 @@ var AIRTIME = (function(AIRTIME) {
             sortDir = oSettings.aaSorting[0][1].toUpperCase();
         }
 
+        var ajaxGetData = {
+            "limit": oSettings._iDisplayLength,
+            "offset": oSettings._iDisplayStart,
+            "sort": sortColName,
+            "sort_dir": sortDir,
+            "search": search
+        };
+        //Merge in any extra AJAX parameters that we passed to the table widget.
+        for (var attrname in this._extraAjaxParameters) { ajaxGetData[attrname] = this._extraAjaxParameters[attrname]; }
+
         // FIXME: We should probably just be sending aoData back here..?
         $.ajax({
             "dataType": 'json',
             "type": "GET",
             "url": sSource,
-            "data": {
-                "limit": oSettings._iDisplayLength,
-                "offset": oSettings._iDisplayStart,
-                "sort": sortColName,
-                "sort_dir": sortDir,
-                "search": search
-            },
+            "data": ajaxGetData,
             "success": function (json, textStatus, jqXHR) {
                 var rawResponseJSON = json;
                 json = [];
@@ -471,12 +478,19 @@ var AIRTIME = (function(AIRTIME) {
         return "check";
     };
 
+    Table.prototype.refresh = function() {
+        this._datatable.fnDraw(true);
+    }
 
     //Accessors / Mutators
 
     Table.prototype.getDatatable = function() {
         return this._datatable;
     };
+
+    Table.prototype.setExtraAjaxParameters = function(extraAjaxParameters) {
+        this._extraAjaxParameters = extraAjaxParameters; //Extra AJAX GET parameters
+    }
 
 
     //Static initializers / Class variables
