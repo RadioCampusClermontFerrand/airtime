@@ -231,8 +231,10 @@ class ApiController extends Zend_Controller_Action
      * TODO: in the future, make interval length a parameter instead of hardcode to 48
      *
      * Possible parameters:
-     * type - Can have values of "endofday" or "interval". If set to "endofday",
-     *        the function will retrieve shows from now to end of day.
+     * type - Can have values of "endofday", "show_content" or "interval".
+     *        If set to "endofday", the function will retrieve shows from now to 
+     *        end of day.
+     *        If set to "show_content", shows the content of the current show.
      *        If set to "interval", shows in the next 48 hours will be retrived.
      *        Default is "interval".
      * limit - How many shows to retrieve
@@ -270,6 +272,34 @@ class ApiController extends Zend_Controller_Action
                     "nextShow" => Application_Model_Show::getNextShows($utcTimeNow, $limit, $utcTimeEnd)
                 );
             }
+            else if ($type == "show_content") {
+                $utcNowObj = new DateTime("now", new DateTimeZone("UTC"));
+                $show = Application_Model_Show::getCurrentShow($utcTimeNow);
+                $currentShowID = count($show)>0?$show[0]['instance_id']:null;
+                $currentShowStart = count($show)>0?new DateTime($show[0]['starts'], new DateTimeZone("UTC")):null;
+                $currentShowEnd = count($show)>0?new DateTime($show[0]['ends'], new DateTimeZone("UTC")):null;
+                $items = Application_Model_Schedule::GetScheduleDetailItems($currentShowStart, $currentShowEnd, array(), array());
+                $currentShowEnd = count($show)>0?new DateTime($show[0]['ends'], new DateTimeZone("UTC")):null;
+                $simpleItems = array();
+                foreach($items as &$item) {
+                    if ($item['show_id'] == $show[0]['id']) {
+                        $itemStart = new DateTime($item["sched_starts"], new DateTimeZone("UTC"));
+                        if ($itemStart < $currentShowEnd) {
+                            $simpleItems[] = array("sched_starts" => $item["sched_starts"],
+                                "sched_ends" => $item["sched_ends"],
+                                "file_track_title" => $item["file_track_title"],
+                                "file_artist_name" => $item["file_artist_name"],
+                                "file_album_title" => $item["file_album_title"]);
+                        }
+                    }
+                }
+                $result = array(
+                    "env" => APPLICATION_ENV,
+                    "schedulerTime" => $utcTimeNow,
+                    "currentShow" => $show,
+                    "currentShowContent" => $simpleItems
+                );
+            }
             else {
                 $result = Application_Model_Schedule::GetPlayOrderRange();
 
@@ -283,8 +313,10 @@ class ApiController extends Zend_Controller_Action
             foreach ($result["currentShow"] as &$current) {
             	$current["name"] = htmlspecialchars($current["name"]);
             }
-            foreach ($result["nextShow"] as &$next) {
-            	$next["name"] = htmlspecialchars($next["name"]);
+            if (isset($result["nextShow"])) {
+                foreach ($result["nextShow"] as &$next) {
+                    $next["name"] = htmlspecialchars($next["name"]);
+                }
             }
             
             //For consistency, all times here are being sent in the station timezone, which
@@ -299,9 +331,11 @@ class ApiController extends Zend_Controller_Action
             Application_Common_DateHelper::convertTimestamps($result["currentShow"],
             		array("starts", "ends", "start_timestamp", "end_timestamp"),
             		"station");
-            Application_Common_DateHelper::convertTimestamps($result["nextShow"],
+            if (isset($result["nextShow"])) {
+                Application_Common_DateHelper::convertTimestamps($result["nextShow"],
             		array("starts", "ends", "start_timestamp", "end_timestamp"),
             		"station");
+            }
 
             //used by caller to determine if the airtime they are running or widgets in use is out of date.
             $result['AIRTIME_API_VERSION'] = AIRTIME_API_VERSION;
