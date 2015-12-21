@@ -291,9 +291,11 @@ class ApiController extends Zend_Controller_Action
                     foreach($items as &$item) {
                         if ($item['show_id'] == $show[0]['id']) {
                             $itemStart = new DateTime($item["sched_starts"], new DateTimeZone("UTC"));
+                            $itemEnd = new DateTime($item["sched_ends"], new DateTimeZone("UTC"));
                             if ($itemStart < $currentShowEnd) {
+                                $sched_ends = $itemEnd > $currentShowEnd ? $show[0]['ends'] : $item["sched_ends"];
                                 $simpleItems[] = array("sched_starts" => $item["sched_starts"],
-                                    "sched_ends" => $item["sched_ends"],
+                                    "sched_ends" => $sched_ends,
                                     "file_track_title" => $item["file_track_title"],
                                     "file_artist_name" => $item["file_artist_name"],
                                     "file_album_title" => $item["file_album_title"]);
