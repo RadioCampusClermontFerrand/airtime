@@ -275,30 +275,38 @@ class ApiController extends Zend_Controller_Action
             else if ($type == "show_content") {
                 $utcNowObj = new DateTime("now", new DateTimeZone("UTC"));
                 $show = Application_Model_Show::getCurrentShow($utcTimeNow);
-                $currentShowID = count($show)>0?$show[0]['instance_id']:null;
-                $currentShowStart = count($show)>0?new DateTime($show[0]['starts'], new DateTimeZone("UTC")):null;
-                $currentShowEnd = count($show)>0?new DateTime($show[0]['ends'], new DateTimeZone("UTC")):null;
-                $items = Application_Model_Schedule::GetScheduleDetailItems($currentShowStart, $currentShowEnd, array(), array());
-                $currentShowEnd = count($show)>0?new DateTime($show[0]['ends'], new DateTimeZone("UTC")):null;
-                $simpleItems = array();
-                foreach($items as &$item) {
-                    if ($item['show_id'] == $show[0]['id']) {
-                        $itemStart = new DateTime($item["sched_starts"], new DateTimeZone("UTC"));
-                        if ($itemStart < $currentShowEnd) {
-                            $simpleItems[] = array("sched_starts" => $item["sched_starts"],
-                                "sched_ends" => $item["sched_ends"],
-                                "file_track_title" => $item["file_track_title"],
-                                "file_artist_name" => $item["file_artist_name"],
-                                "file_album_title" => $item["file_album_title"]);
+                if (!isset($show) || count($show) == 0) {
+                    $result = array(
+                        "env" => APPLICATION_ENV,
+                        "schedulerTime" => $utcTimeNow
+                    );
+                }
+                else {
+                    $currentShowID = count($show)>0?$show[0]['instance_id']:null;
+                    $currentShowStart = count($show)>0?new DateTime($show[0]['starts'], new DateTimeZone("UTC")):null;
+                    $currentShowEnd = count($show)>0?new DateTime($show[0]['ends'], new DateTimeZone("UTC")):null;
+                    $items = Application_Model_Schedule::GetScheduleDetailItems($currentShowStart, $currentShowEnd, array(), array());
+                    $currentShowEnd = count($show)>0?new DateTime($show[0]['ends'], new DateTimeZone("UTC")):null;
+                    $simpleItems = array();
+                    foreach($items as &$item) {
+                        if ($item['show_id'] == $show[0]['id']) {
+                            $itemStart = new DateTime($item["sched_starts"], new DateTimeZone("UTC"));
+                            if ($itemStart < $currentShowEnd) {
+                                $simpleItems[] = array("sched_starts" => $item["sched_starts"],
+                                    "sched_ends" => $item["sched_ends"],
+                                    "file_track_title" => $item["file_track_title"],
+                                    "file_artist_name" => $item["file_artist_name"],
+                                    "file_album_title" => $item["file_album_title"]);
+                            }
                         }
                     }
+                    $result = array(
+                        "env" => APPLICATION_ENV,
+                        "schedulerTime" => $utcTimeNow,
+                        "currentShow" => $show,
+                        "currentShowContent" => $simpleItems
+                    );
                 }
-                $result = array(
-                    "env" => APPLICATION_ENV,
-                    "schedulerTime" => $utcTimeNow,
-                    "currentShow" => $show,
-                    "currentShowContent" => $simpleItems
-                );
             }
             else {
                 $result = Application_Model_Schedule::GetPlayOrderRange();
@@ -310,8 +318,10 @@ class ApiController extends Zend_Controller_Action
             }
             
             // XSS exploit prevention
-            foreach ($result["currentShow"] as &$current) {
-            	$current["name"] = htmlspecialchars($current["name"]);
+            if (isset($result["currentShow"])) {
+                foreach ($result["currentShow"] as &$current) {
+                    $current["name"] = htmlspecialchars($current["name"]);
+                }
             }
             if (isset($result["nextShow"])) {
                 foreach ($result["nextShow"] as &$next) {
@@ -328,9 +338,11 @@ class ApiController extends Zend_Controller_Action
             $result["timezoneOffset"] = Application_Common_DateHelper::getStationTimezoneOffset();
             
             //Convert from UTC to station time for Web Browser.
-            Application_Common_DateHelper::convertTimestamps($result["currentShow"],
-            		array("starts", "ends", "start_timestamp", "end_timestamp"),
-            		"station");
+            if (isset($result["currentShow"])) {
+                Application_Common_DateHelper::convertTimestamps($result["currentShow"],
+                            array("starts", "ends", "start_timestamp", "end_timestamp"),
+                            "station");
+            }
             if (isset($result["nextShow"])) {
                 Application_Common_DateHelper::convertTimestamps($result["nextShow"],
             		array("starts", "ends", "start_timestamp", "end_timestamp"),
