@@ -225,14 +225,22 @@ var AIRTIME = (function(AIRTIME){
     };
     
     mod.selectAll = function () {
-        $inputs = $sbTable.find("input:checkbox");
+        if ($("#txtGenre").val() != ""){
+            $genre = $('#txtGenre').val();
+            $row = $(".sb-genre:contains('" + $genre + "')").parent()
+            $row.find("input:checkbox").attr("checked", true);
+            $row.addClass(SB_SELECTED_CLASS);
+        }
+        else {
+            $inputs = $sbTable.find("input:checkbox");
         
-        $inputs.attr("checked", true);
+            $inputs.attr("checked", true);
         
-        $trs = $inputs.parents("tr");
-        $trs.addClass(SB_SELECTED_CLASS);
+            $trs = $inputs.parents("tr");
+            $trs.addClass(SB_SELECTED_CLASS);
         
-        mod.checkToolBarIcons();
+            mod.checkToolBarIcons();
+        }
     };
     
     mod.selectNone = function () {
@@ -1034,6 +1042,8 @@ var AIRTIME = (function(AIRTIME){
 
         $menu = $("<div class='btn-toolbar'/>");
         $menu.append("<div class='btn-group'>" +
+                     "<label style='vertical-align: middle;'>"+$.i18n._("Genre contains")+":</label>" +
+                     "<input type='text' id='txtGenre' style='width:70px; margin-right: 5px; background-color: #dddddd; vertical-align: middle;'></input>" +
                      "<button class='btn btn-small dropdown-toggle'  id='timeline-select' data-toggle='dropdown'>" +
                          $.i18n._("Select")+" <span class='caret'></span>" +
                      "</button>" +
