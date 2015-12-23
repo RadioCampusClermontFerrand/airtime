@@ -36,6 +36,7 @@ class Application_Model_ShowBuilder
         "runtime"         => "",
         "title"           => "",
         "creator"         => "",
+        "genre"           => "",
         "album"           => "",
         "timestamp"       => null,
         "cuein"           => "",
@@ -293,6 +294,7 @@ class Application_Model_ShowBuilder
             $row["title"]    = htmlspecialchars($p_item["file_track_title"]);
             $row["creator"]  = htmlspecialchars($p_item["file_artist_name"]);
             $row["album"]    = htmlspecialchars($p_item["file_album_title"]);
+            $row["genre"]    = htmlspecialchars($p_item["file_genre"]);
 
             $row["cuein"]    = $p_item["cue_in"];
             $row["cueout"]   = $p_item["cue_out"];
