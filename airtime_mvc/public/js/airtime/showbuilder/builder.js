@@ -315,7 +315,16 @@ var AIRTIME = (function(AIRTIME){
             }
         }
     };
+
+    mod.fnReplace = function(aMediaIds, aSchedIds) {
+        mod.disableUI();
         
+        $.post(baseUrl+"showbuilder/schedule-replace", 
+            {"format": "json", "mediaIds": aMediaIds, "schedIds": aSchedIds}, 
+            mod.fnItemCallback
+        );
+    };
+    
     mod.fnAdd = function(aMediaIds, aSchedIds) {
         mod.disableUI();
         

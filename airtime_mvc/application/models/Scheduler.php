@@ -985,6 +985,30 @@ class Application_Model_Scheduler
         }
     }
 
+    
+    /*
+     * @param array $scheduleItems (schedule_id and instance_id it belongs to)
+     * @param array $mediaItems (file|block|playlist|webstream)
+     */
+    public function replaceItems($scheduleItems, $mediaItems, $adjustSched = true)
+    {
+        $this->con->beginTransaction();
+
+        try {
+            $this->validateRequest($scheduleItems, true);
+
+            $this->insertAfter($scheduleItems, $mediaItems, null, $adjustSched);
+            $this->removeItems($scheduleItems);
+
+            $this->con->commit();
+
+            Application_Model_RabbitMq::PushSchedule();
+        } catch (Exception $e) {
+            $this->con->rollback();
+            throw $e;
+        }
+    }
+    
     /*
      * @param array $selectedItem
      * @param array $afterItem
@@ -1082,8 +1106,6 @@ class Application_Model_Scheduler
         $this->con->beginTransaction();
 
         try {
-
-            $this->validateRequest($scheduledItems);
 
             $scheduledIds = array();
             foreach ($scheduledItems as $item) {
@@ -1227,6 +1249,7 @@ class Application_Model_Scheduler
                         $remove[$i]["id"] = $items[$i]->getDbId();
                     }
 
+                    $this->validateRequest($scheduledItems);
                     $this->removeItems($remove, false, true);
                 }
             } else {

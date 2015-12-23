@@ -8,6 +8,7 @@ class ShowbuilderController extends Zend_Controller_Action
         $ajaxContext = $this->_helper->getHelper('AjaxContext');
         $ajaxContext->addActionContext('schedule-move', 'json')
                     ->addActionContext('schedule-add', 'json')
+                    ->addActionContext('schedule-replace', 'json')
                     ->addActionContext('schedule-remove', 'json')
                     ->addActionContext('builder-dialog', 'json')
                     ->addActionContext('check-builder-feed', 'json')
@@ -312,7 +313,26 @@ class ShowbuilderController extends Zend_Controller_Action
 
         try {
             $scheduler = new Application_Model_Scheduler();
+            $scheduler->validateRequest($scheduledItems);
             $scheduler->removeItems($items);
+        } catch (OutDatedScheduleException $e) {
+            $this->view->error = $e->getMessage();
+            Logging::info($e->getMessage());
+        } catch (Exception $e) {
+            $this->view->error = $e->getMessage();
+            Logging::info($e->getMessage());
+        }
+    }
+    
+    public function scheduleReplaceAction()
+    {
+        $request = $this->getRequest();
+        $mediaItems = $request->getParam("mediaIds", array());
+        $scheduledItems = $request->getParam("schedIds", array());
+
+        try {
+            $scheduler = new Application_Model_Scheduler();
+            $scheduler->replaceItems($scheduledItems, $mediaItems);
         } catch (OutDatedScheduleException $e) {
             $this->view->error = $e->getMessage();
             Logging::info($e->getMessage());

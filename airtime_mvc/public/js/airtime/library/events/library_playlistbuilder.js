@@ -26,6 +26,8 @@ var AIRTIME = (function(AIRTIME) {
         } else {
             AIRTIME.button.disableButton("btn-group #library-plus", false);
         }
+        
+        AIRTIME.button.disableButton("btn-group #library-replace", false);
 
         var objType = $('#obj_type').val(),
             btnText;

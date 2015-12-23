@@ -9,6 +9,7 @@ var AIRTIME = (function(AIRTIME) {
 
     mod.checkAddButton = function() {
         var selected = mod.getChosenItemsLength(), $cursor = $('tr.cursor-selected-row'), check = false;
+        var $cursorReplace = $('tr.sb-selected'), checkReplace = false;
 
         // make sure library items are selected and a cursor is selected.
         if (selected !== 0 && $cursor.length !== 0) {
@@ -20,8 +21,21 @@ var AIRTIME = (function(AIRTIME) {
         } else {
             AIRTIME.button.disableButton("btn-group #library-plus", false);
         }
+
+        // make sure library items are selected and an item is selected
+        if (selected !== 0 && $cursorReplace.length !== 0) {
+            checkReplace = true;
+        }
+
+        if (checkReplace === true) {
+            AIRTIME.button.enableButton("btn-group #library-replace", false);
+        } else {
+            AIRTIME.button.disableButton("btn-group #library-replace", false);
+        }
+
         
         AIRTIME.library.changeAddButtonText($('.btn-group #library-plus #lib-plus-text'), ' '+$.i18n._('Add to selected show'));
+        AIRTIME.library.changeAddButtonText($('.btn-group #library-replace #lib-replace-text'), ' '+$.i18n._('Replace selection'));
     };
 
     mod.fnRowCallback = function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -163,6 +177,48 @@ var AIRTIME = (function(AIRTIME) {
                         }
     
                         AIRTIME.showbuilder.fnAdd(aMediaIds, aSchedIds);
+                    });
+        
+        // add to timeline button
+        $toolbar
+            .find('.icon-replace').parent()
+            .click(
+                    function() {
+
+                        if (AIRTIME.button.isDisabled('btn-group #library-replace') === true) {
+                            return;
+                        }
+    
+                        var selected = AIRTIME.library.getSelectedData(), data, i, length, temp, aMediaIds = [], aSchedIds = [], aData = [], toRemove = [];
+    
+                        // process selected files/playlists.
+                        for (i = 0, length = selected.length; i < length; i++) {
+                            data = selected[i];
+                            aMediaIds.push( {
+                                "id" : data.id,
+                                "type" : data.ftype
+                            });
+                        }
+    
+                        $("#show_builder_table tr.sb-selected")
+                                .each(function(i, el) {
+                                    aData.push($(el).data("aData"));
+                                });
+    
+                        // process selected schedule rows to add media
+                        // after.
+                        for (i = 0, length = aData.length; i < length; i++) {
+                            temp = aData[i];
+                            aSchedIds.push( {
+                                "id" : temp.id,
+                                "instance" : temp.instance,
+                                "timestamp" : temp.timestamp
+                            });
+                        }
+    
+                        // add the selected media after the selected scheduled item
+                        AIRTIME.showbuilder.fnReplace(aMediaIds, aSchedIds);
+
                     });
 
         // delete from library.

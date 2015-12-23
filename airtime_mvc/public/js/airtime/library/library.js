@@ -131,6 +131,12 @@ var AIRTIME = (function(AIRTIME) {
                         "</button>" +
                     "</div>")
             .append("<div class='btn-group'>" +
+                        "<button class='btn btn-small' id='library-replace'>" +
+                            "<i class='icon-white icon-replace'></i>" +
+                            "<span id='lib-replace-text'></span>" +
+                        "</button>" +
+                    "</div>")
+            .append("<div class='btn-group'>" +
                         "<button class='btn btn-small' id='sb-trash'>" +
                             "<i class='icon-white icon-trash'></i>" +
                         "</button>" +
