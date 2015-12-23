@@ -239,8 +239,8 @@ var AIRTIME = (function(AIRTIME){
             $trs = $inputs.parents("tr");
             $trs.addClass(SB_SELECTED_CLASS);
         
-            mod.checkToolBarIcons();
         }
+        mod.checkToolBarIcons();
     };
     
     mod.selectNone = function () {
